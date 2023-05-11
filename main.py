@@ -12,7 +12,7 @@ def index():
 def index_form():
     data = dict(request.form)
     if 'shikimori_id' in data.keys():
-        return redirect(f"/download/shikimori/{data['shikimori_id']}/")
+        return redirect(f"/download/{data['shikimori_id']}/")
     elif 'kdk' in data.keys(): # Kodik
         return redirect(f"/search/kdk/{data['kdk']}")
     else:
