@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Серия {{ seria }}</title>
+    <!-- Стили Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+  </head>
+  <body>
+    <!-- Контент -->
+    <a href='/'><button class="btn btn-primary">На главную</button></a><br>
+    <div class="container mt-5">
+      <h1>Серия {{ seria }} (<a href='https://kodikdb.com/find-player?shikimoriID={{ id }}&only_season=false'>Смотреть в Kodik'е</a>)</h1>
+      <video controls="controls" width=70% autoplay>
+        <source src="{{ url }}" type='video/mp4'>
+      </video>
+      <p>
+      {% if seria > 1 %}
+      <a href='/watch/{{ id }}/{{ data }}/{{ seria-1 }}/{{ quality }}'>Предыдущая серия</a>
+      {% endif %}
+      {% if seria > 1 and seria < series %}
+       | 
+      {% endif %}
+      {% if seria < series %}
+      <a href='/watch/{{ id }}/{{ data }}/{{ seria+1 }}/{{ quality }}'>Следующая серия</a>
+      {% endif %}
+      </p>
+      {% if seria > 0 %}
+      <form method="POST" novalidate>
+        <div class="mb-3">
+            <label class="form-label">Введите номер серии:</label>
+            <input name="seria" required autocomplete=off cols="10" maxlength='80'>
+            <button type="submit">Перейти</button>
+        </div>
+      </form>
+      {% endif %}
+      <p>Текущее качество видео: {{ quality }}<br>Изменить: <a href='720'>720</a> | <a href='480'>480</a> | <a href='360'>360</a></p>
+      <a href='{{ url }}'>Скачать эту серию</a>
+      <p>Если у вас не найден плеер или не получается скачать, попробуйте сменить качество.</p>
+    </div>
+    <!-- Скрипты Bootstrap 5 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+  </body>
+</html>
