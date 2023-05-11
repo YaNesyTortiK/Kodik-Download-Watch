@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup as Soup
 from base64 import b64decode
 from time import sleep
 
+
 def convert_char(char: str):
     low = char.islower()
     alph = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -71,17 +72,16 @@ def generate_translations_dict(series_count: int, translations_div: Soup) -> dic
 
     return {'series_count': series_count, 'translations': translations}
 
-def get_link_to_serial_info(shikimoriID: str):
-    token="447d179e875efe44217f20d1ee2146be"
+def get_link_to_serial_info(shikimoriID: str, token: str):
     serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FshikimoriID%3D{shikimoriID}&token={token}&shikimoriID={shikimoriID}"
     data = get_url_data(serv)
     return data
 
-def get_shiki_serial_info(shikimoriID: str) -> dict:
+def get_shiki_serial_info(shikimoriID: str, token: str) -> dict:
     """Returns dict {'series_count': int, 'translations': [{'id': 'str', 'type': 'str', 'name': 'str'}, ...]}
     If series_count == 0, then it's a video (doesn't have series)
     """
-    url = get_link_to_serial_info(shikimoriID)
+    url = get_link_to_serial_info(shikimoriID, token)
     url = json.loads(url)
     is_found = url['found']
     if not is_found:
@@ -97,7 +97,6 @@ def get_shiki_serial_info(shikimoriID: str) -> dict:
                 translations_div = soup.find("div", {"class": "serial-translations-box"}).find("select").find_all("option")
             except:
                 translations_div = None
-            print(translations_div)
             return generate_translations_dict(series_count, translations_div)
         elif is_video(url):
             series_count = 0
@@ -109,9 +108,7 @@ def get_shiki_serial_info(shikimoriID: str) -> dict:
         else:
             raise FileNotFoundError("NOT A VIDEO NOR A SERIAL!!!")
 
-def get_download_link(shikimori_id: str, seria_num: int, translation_id: str):
-    print(shikimori_id, seria_num, translation_id)
-    token="447d179e875efe44217f20d1ee2146be"
+def get_download_link(shikimori_id: str, seria_num: int, translation_id: str, token: str):
     serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FshikimoriID%3D{shikimori_id}&token={token}&shikimoriID={shikimori_id}"
     data = get_url_data(serv)
     url = json.loads(data)['link']
@@ -122,7 +119,6 @@ def get_download_link(shikimori_id: str, seria_num: int, translation_id: str):
         media_hash = None
         media_id = None
         for translation in container.find_all('option'):
-            # print(translation.get_attribute_list('data-id'))
             if translation.get_attribute_list('data-id')[0] == translation_id:
                 media_hash = translation.get_attribute_list('data-media-hash')[0]
                 media_id = translation.get_attribute_list('data-media-id')[0]
@@ -136,7 +132,6 @@ def get_download_link(shikimori_id: str, seria_num: int, translation_id: str):
         media_hash = None
         media_id = None
         for translation in container.find_all('option'):
-            # print(translation.get_attribute_list('data-id'))
             if translation.get_attribute_list('data-id')[0] == translation_id:
                 media_hash = translation.get_attribute_list('data-media-hash')[0]
                 media_id = translation.get_attribute_list('data-media-id')[0]
@@ -180,13 +175,12 @@ def get_download_link_with_data(video_type: str, video_hash: str, video_id: str,
     data = requests.post('http://kodik.cc/gvi', params=params).json()
 
     url = convert(data['links']['720'][0]['src'])
-    if seria_num == 0:
-        return str(b64decode(url.encode()+b'==')).replace("https:", '')
-    else:
+    try:
         return b64decode(url.encode())
+    except:
+        return str(b64decode(url.encode()+b'==')).replace("https:", '')
 
-def get_search_data(search_query: str):
-    token="447d179e875efe44217f20d1ee2146be"
+def get_search_data(search_query: str, token: str):
     payload = {
         "token": token,
         "title": search_query
@@ -215,7 +209,6 @@ def get_search_data(search_query: str):
     return items
 
 def get_shiki_data(id: str):
-    print(id)
     headers = {
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 OPR/93.0.0.0 (Edition Yx GX)",
     }
@@ -268,14 +261,3 @@ def get_shiki_search_data(search_query: str):
         dd['title'] = dd['title'].replace(dd['type'], '', 1).replace(dd['date'], '', 1)
         items.append(dd)
     return items
-
-if __name__ == "__main__":
-    from pprint import pprint
-    print(get_download_link('20021', 0, "610"))
-    # pprint(get_search_data('Overlord'))
-    # data = get_search_data("Класс превосходства")
-    # print(get_link_to_serial_info("863"))
-    token = "447d179e875efe44217f20d1ee2146be"
-    shikimori_id = "20021"
-    # data = get_url_data(f"https://kodik.info/video/9949/5675b11dacd4bafc3f00f3b6751f8b12/720p")
-    # print(convert("nUE0pUZ6Yl9woT91MP5eo2Ecnl1wMT4hL29gY2ShnJ1ypl9vMQtkAmp1MQIxZGEvZ2R0LmR5LGH4AmWuLwHjMwWxAJExBGDmZJIzY2D4LmMyZTWyAGIyZGyuAwMxBGR5L2MvMQIwATAzAzDkBwVjZwZjAGNlZQNiZwDjYz1jAQcboUZ6oJShnJMyp3DhoGA1BN"))
