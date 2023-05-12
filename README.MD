@@ -7,6 +7,7 @@
 * Python
 * Flask
 * BeautifulSoup4
+* Jinja2
 
 ## Как запустить
 
