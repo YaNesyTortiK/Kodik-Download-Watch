@@ -115,7 +115,7 @@ def watch(serv, id, data, seria, quality = None):
             return abort(400)
         url = "https:"+url+quality+".mp4"
         return render_template('watch.html',
-            url=url, seria=seria, series=series, id=id, id_type=id_type, data="-".join(data), quality=quality)
+            url=url, seria=seria, series=series, id=id, id_type=id_type, data="-".join(data), quality=quality, serv=serv)
     except:
         return abort(404)
 

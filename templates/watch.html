@@ -17,13 +17,13 @@
       </video>
       <p>
       {% if seria > 1 %}
-      <a href='/watch/{{ id }}/{{ data }}/{{ seria-1 }}/{{ quality }}'>Предыдущая серия</a>
+      <a href='/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria-1 }}/{{ quality }}'>Предыдущая серия</a>
       {% endif %}
       {% if seria > 1 and seria < series %}
        | 
       {% endif %}
       {% if seria < series %}
-      <a href='/watch/{{ id }}/{{ data }}/{{ seria+1 }}/{{ quality }}'>Следующая серия</a>
+      <a href='/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria+1 }}/{{ quality }}'>Следующая серия</a>
       {% endif %}
       </p>
       {% if seria > 0 %}
