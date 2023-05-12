@@ -11,10 +11,10 @@
 ## Как запустить
 
 1. Склонируйте репозиторий
-2. Создайте и активируйте виртаульное окружение
+2. Создайте и активируйте виртульное окружение
 ```commandline
 python -m venv venv
-source venv/Scripts/activate
+venv/Scripts/activate
 ```  
 3. Установите зависимости
 ```commandline
