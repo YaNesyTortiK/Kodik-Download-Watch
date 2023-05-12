@@ -17,7 +17,7 @@
       <hr>
       <h5>Выберите перевод:</h5>
       {% for translation in translations %}
-      <p>{{ translation.type }}<a href="/download/{{ id }}/{{ series_count }}-{{ translation.id }}">{{ translation.name }}</a></p>
+      <p>{{ translation.type }}<a href="{{ series_count }}-{{ translation.id }}">{{ translation.name }}</a></p>
       {% endfor %}
     </div>
     <!-- Скрипты Bootstrap 5 -->

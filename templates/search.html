@@ -21,19 +21,20 @@
       </form>
     </div>
     <div class="container mt-5">
+    <h1 class="mb-4">Аниме:</h1><hr>
     <table>
       <tr>
       {% for item in items %}
       <th>
       <div class="mb-3">
-        <a href="/download/{{ item.id }}" style="color: #000; text-decoration: none;">
+        <a href="/download/sh/{{ item.id }}" style="color: #000; text-decoration: none;">
         <table>
           <td><th>
             <img src='{{ item.image }}' height=200px>
           </th></td>
           <td><th>
             <h5>{{ item.title }}</h5>
-            <p>Тип: {{ item.type }}<br>Даты:<br>{{ item.date }}</p>
+            <p>Тип: {{ item.type }}<br>Даты:<br>{{ item.date }}<br>Статус: {{ item.status }}</p>
           </th></td>
         </table>
         </a>
@@ -49,6 +50,17 @@
       {% endfor %}
       </tr>
     </table>
+    <hr><h1 class="mb-4">Прочее:</h1><hr>
+    <ul>
+    {% for item in others %}
+      <li>
+        <a href="/download/kp/{{ item.id }}" style="color: #000; text-decoration: none;">
+        {{ item.type }}: {{ item.title }}<br>
+        {{ item.date }}
+        </a>
+      </li>
+    {% endfor %}
+    </ul>
     </div>
     <!-- Скрипты Bootstrap 5 -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>

@@ -21,7 +21,7 @@ def convert_char(char: str):
 def convert(string: str):
     return "".join(map(convert_char, list(string)))
 
-def get_url_data(url: str, headers: dict = None):
+def get_url_data(url: str, headers: dict = None, session=None):
     return requests.get(url, headers=headers).text
 
 def get_shiki_picture(shikimoriID: str):
@@ -72,16 +72,21 @@ def generate_translations_dict(series_count: int, translations_div: Soup) -> dic
 
     return {'series_count': series_count, 'translations': translations}
 
-def get_link_to_serial_info(shikimoriID: str, token: str):
-    serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FshikimoriID%3D{shikimoriID}&token={token}&shikimoriID={shikimoriID}"
+def get_link_to_serial_info(id: str, id_type: str, token: str):
+    if id_type == "shikimori":
+        serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FshikimoriID%3D{id}&token={token}&shikimoriID={id}"
+    elif id_type == "kinopoisk":
+        serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FkinopoiskID%3D{id}&token={token}&kinopoiskID={id}"
+    else:
+        raise ValueError("Неизвестный тип id")
     data = get_url_data(serv)
     return data
 
-def get_shiki_serial_info(shikimoriID: str, token: str) -> dict:
+def get_serial_info(id: str, id_type: str, token: str) -> dict:
     """Returns dict {'series_count': int, 'translations': [{'id': 'str', 'type': 'str', 'name': 'str'}, ...]}
     If series_count == 0, then it's a video (doesn't have series)
     """
-    url = get_link_to_serial_info(shikimoriID, token)
+    url = get_link_to_serial_info(id, id_type, token)
     url = json.loads(url)
     is_found = url['found']
     if not is_found:
@@ -108,8 +113,13 @@ def get_shiki_serial_info(shikimoriID: str, token: str) -> dict:
         else:
             raise FileNotFoundError("NOT A VIDEO NOR A SERIAL!!!")
 
-def get_download_link(shikimori_id: str, seria_num: int, translation_id: str, token: str):
-    serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FshikimoriID%3D{shikimori_id}&token={token}&shikimoriID={shikimori_id}"
+def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str, token: str):
+    if id_type == "shikimori":
+        serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FshikimoriID%3D{id}&token={token}&shikimoriID={id}"
+    elif id_type == "kinopoisk":
+        serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FkinopoiskID%3D{id}&token={token}&kinopoiskID={id}"
+    else:
+        raise ValueError("Неизвестный тип id")
     data = get_url_data(serv)
     url = json.loads(data)['link']
     data = get_url_data('https:'+url)
@@ -188,6 +198,7 @@ def get_search_data(search_query: str, token: str):
     url = "https://kodikapi.com/search"
     data = requests.post(url, data=payload).json()
     items = []
+    others = []
     used_ids = []
     # with open('datta.json', 'w') as f:
     #     json.dump(data['results'], f)
@@ -205,8 +216,29 @@ def get_search_data(search_query: str, token: str):
             }
             items.append(dd)
             used_ids.append(item['shikimori_id'])
+        elif "kinopoisk_id" in item.keys() and 'shikimori_id' not in item.keys() and item['kinopoisk_id'] not in used_ids:
+            if item['type'] == "foreign-movie":
+                ctype = "Иностранный фильм"
+            elif item['type'] == "foreign-serial":
+                ctype = "Иностранный сериал"
+            elif item['type'] == "russian-movie":
+                ctype = "Русский фильм"
+            elif item['type'] == "russian-serial":
+                ctype = "Русский сериал"
+            else:
+                ctype = item['type']
+            others.append(
+                {
+                    "id": item['kinopoisk_id'],
+                    "title": item['title'],
+                    "type": ctype,
+                    "date": item['year']
+                }
+            )
+            used_ids.append(item['kinopoisk_id'])
 
-    return items
+    others = sorted(others, key=lambda x: x['date'], reverse=True)
+    return (items, others)
 
 def get_shiki_data(id: str):
     headers = {
