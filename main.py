@@ -152,4 +152,4 @@ def help():
     return redirect("https://github.com/YaNesyTortiK/Kodik-Download-Watch/blob/main/README.MD")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
