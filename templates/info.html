@@ -5,11 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}}</title>
     <!-- Стили Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
   </head>
-  <body>
+  <body {% if is_dark %}class="dark-body"{% endif %}>
     <!-- Контент -->
-    <a href='/'><button class="btn btn-primary">На главную</button></a><br>
+    <table>
+      <tr>
+        <td><a href='/'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">На главную</button></a></td>
+        <td><form method="POST" action="/change_theme/" novalidate>
+            <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position:absolute;top:1px">Сменить тему</button>
+        </form></td>
+      </tr>
+    </table>
     <div class="container mt-5">
       <h1 class="mb-4">{{ title }}</h1>
       <img src="{{ image }}" height=500px>
@@ -17,10 +24,11 @@
       <hr>
       <h5>Выберите перевод:</h5>
       {% for translation in translations %}
-      <p>{{ translation.type }}<a href="{{ series_count }}-{{ translation.id }}">{{ translation.name }}</a></p>
+      <p>{{ translation.type }}<a href="{{ series_count }}-{{ translation.id }}/" {% if is_dark %} class="dark-href"{% endif %}>{{ translation.name }}</a> | 
+        <a href="{{ series_count }}-{{ translation.id }}/watch-{% if series_count == 0 %}0{% else %}1{% endif %}/" {% if is_dark %} class="dark-href"{% endif %}>Смотреть онлайн</a></p>
       {% endfor %}
     </div>
     <!-- Скрипты Bootstrap 5 -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
   </body>
 </html>

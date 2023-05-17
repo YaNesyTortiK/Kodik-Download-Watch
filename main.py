@@ -1,12 +1,14 @@
-from flask import Flask, render_template, request, redirect, abort
+from flask import Flask, render_template, request, redirect, abort, session
 from getters import *
 
 app = Flask(__name__)
 token = "447d179e875efe44217f20d1ee2146be"
 
+app.config['SECRET_KEY'] = "some_super_ultra_unbelievable_key"
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
 
 @app.route('/', methods=['POST'])
 def index_form():
@@ -16,18 +18,27 @@ def index_form():
     if 'kinopoisk_id' in data.keys():
         return redirect(f"/download/kp/{data['kinopoisk_id']}/")
     elif 'kdk' in data.keys(): # Kodik
-        return redirect(f"/search/kdk/{data['kdk']}")
+        return redirect(f"/search/kdk/{data['kdk']}/")
     else:
         return abort(400)
+    
+@app.route("/change_theme/", methods=['POST'])
+def change_theme():
+    print(request.referrer)
+    if "is_dark" in session.keys():
+        session['is_dark'] = not(session['is_dark'])
+    else:
+        session['is_dark'] = True
+    return redirect(request.referrer)
 
-@app.route('/search/<string:db>/<string:query>')
+@app.route('/search/<string:db>/<string:query>/')
 def search_page(db, query):
     if db == "kdk":
         try:
             s_data = get_search_data(query, token)
-            return render_template('search.html', items=s_data[0], others=s_data[1])
+            return render_template('search.html', items=s_data[0], others=s_data[1], is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
         except:
-            return render_template('search.html')
+            return render_template('search.html', is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     else:
         return abort(400)
 
@@ -51,7 +62,8 @@ def download_shiki_choose_translation(serv, id):
             <p>Exception type: {ex}</p>
             """
         return render_template('info.html', 
-            title=name, image=pic, score=score, translations=serial_data['translations'], series_count=serial_data["series_count"], id=id)
+            title=name, image=pic, score=score, translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
+            is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     elif serv == "kp":
         try:
             serial_data = get_serial_info(id, "kinopoisk", token)
@@ -61,7 +73,8 @@ def download_shiki_choose_translation(serv, id):
             <p>Exception type: {ex}</p>
             """
         return render_template('info.html', 
-            title="...", image="https://ih1.redbubble.net/image.343726250.4611/flat,1000x1000,075,f.jpg", score="Нет информации", translations=serial_data['translations'], series_count=serial_data["series_count"], id=id)
+            title="...", image="https://ih1.redbubble.net/image.343726250.4611/flat,1000x1000,075,f.jpg", score="Нет информации", translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
+            is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     else:
         return abort(400)
 
@@ -69,9 +82,9 @@ def download_shiki_choose_translation(serv, id):
 def download_choose_seria(serv, id, data):
     data = data.split('-')
     series = int(data[0])
-    return render_template('download.html', series=series)
+    return render_template('download.html', series=series, is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
 
-@app.route('/download/<string:serv>/<string:id>/<string:data>/<string:data2>')
+@app.route('/download/<string:serv>/<string:id>/<string:data>/<string:data2>/')
 def redirect_to_download(serv, id, data, data2):
     data = data.split('-')
     translation_id = str(data[1])
@@ -92,12 +105,12 @@ def redirect_to_download(serv, id, data, data2):
 @app.route('/download/<string:serv>/<string:id>/<string:data>/watch-<int:num>/')
 def redirect_to_player(serv, id, data, num):
     if data[0] == "0":
-        return redirect(f'/watch/{serv}/{id}/{data}/0')
+        return redirect(f'/watch/{serv}/{id}/{data}/0/')
     else:
-        return redirect(f'/watch/{serv}/{id}/{data}/{num}')
+        return redirect(f'/watch/{serv}/{id}/{data}/{num}/')
 
 @app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/')
-@app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/<string:quality>')
+@app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/<string:quality>/')
 def watch(serv, id, data, seria, quality = None):
     if quality == None:
         quality = "720"
@@ -115,12 +128,14 @@ def watch(serv, id, data, seria, quality = None):
             return abort(400)
         url = "https:"+url+quality+".mp4"
         return render_template('watch.html',
-            url=url, seria=seria, series=series, id=id, id_type=id_type, data="-".join(data), quality=quality, serv=serv)
+            url=url, seria=seria, series=series, id=id, id_type=id_type, data="-".join(data), quality=quality, serv=serv, 
+            is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     except:
         return abort(404)
 
 @app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/', methods=['POST'])
-def change_seria(serv, id, data, seria):
+@app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/<string:quality>/', methods=['POST'])
+def change_seria(serv, id, data, seria, quality=None):
     try:
         new_seria = int(dict(request.form)['seria'])
     except:
@@ -130,11 +145,11 @@ def change_seria(serv, id, data, seria):
     if new_seria > series or new_seria < 1:
         return abort(400, "Данная серия не существует")
     else:
-        return redirect(f"/watch/{serv}/{id}/{'-'.join(data)}/{new_seria}")
+        return redirect(f"/watch/{serv}/{id}/{'-'.join(data)}/{new_seria}{'/'+quality if quality != None else ''}")
 
 @app.route('/help/')
 def help():
     return redirect("https://github.com/YaNesyTortiK/Kodik-Download-Watch/blob/main/README.MD")
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)

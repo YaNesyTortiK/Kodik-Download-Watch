@@ -5,19 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Поиск</title>
     <!-- Стили Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
   </head>
-  <body>
+  <body {% if is_dark %}class="dark-body"{% endif %}>
     <!-- Контент -->
-    <a href='/'><button class="btn btn-primary">На главную</button></a><br>
+    <table>
+      <tr>
+        <td><a href='/'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">На главную</button></a></td>
+        <td><form method="POST" action="/change_theme/" novalidate>
+            <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position:absolute;top:1px">Сменить тему</button>
+        </form></td>
+      </tr>
+    </table>
     <div class="container mt-5">
       <h1 class="text-center mb-4">Поиск</h1>
       <form method="POST" novalidate action="/">
         <div class="mb-3">
           <label for="original-url" class="form-label">Введите название</label>
-          <input class="form-control" id="original-url" name="kdk" required autocomplete=off>
+          <input class="{% if is_dark %}dark-{% endif %}form-control" id="original-url" name="kdk" required autocomplete=off>
         </div>
-        <button type="submit" class="btn btn-primary mb-3">Поиск</button>
+        <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3">Поиск</button>
       </form>
     </div>
     <div class="container mt-5">
@@ -27,7 +34,7 @@
       {% for item in items %}
       <th>
       <div class="mb-3">
-        <a href="/download/sh/{{ item.id }}" style="color: #000; text-decoration: none;">
+        <a href="/download/sh/{{ item.id }}/" class="{% if is_dark %}dark-{% endif %}black-href">
         <table>
           <td><th>
             <img src='{{ item.image }}' height=200px>
@@ -54,7 +61,7 @@
     <ul>
     {% for item in others %}
       <li>
-        <a href="/download/kp/{{ item.id }}" style="color: #000; text-decoration: none;">
+        <a href="/download/kp/{{ item.id }}/" class="{% if is_dark %}dark-{% endif %}black-href">
         {{ item.type }}: {{ item.title }}<br>
         {{ item.date }}
         </a>
@@ -63,6 +70,6 @@
     </ul>
     </div>
     <!-- Скрипты Bootstrap 5 -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
   </body>
 </html>
