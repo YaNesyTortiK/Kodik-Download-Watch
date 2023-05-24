@@ -1,10 +1,14 @@
-from flask import Flask, render_template, request, redirect, abort, session
+from flask import Flask, render_template, request, redirect, abort, session, send_file, send_from_directory
 from getters import *
+from json import load
 
 app = Flask(__name__)
 token = "447d179e875efe44217f20d1ee2146be"
 
 app.config['SECRET_KEY'] = "some_super_ultra_unbelievable_key"
+
+with open("translations.json", 'r') as f:
+    translations = json.load(f)
 
 @app.route('/')
 def index():
@@ -98,7 +102,10 @@ def redirect_to_download(serv, id, data, data2):
             url = get_download_link(id, "kinopoisk", seria, translation_id, token)
         else:
             return abort(400)
-        return redirect(f"https:{url}{quality}.mp4")
+        if seria == 0:
+            return redirect(f"https:{url}{quality}.mp4:Перевод-{translations[translation_id]}:.mp4")
+        else:
+            return redirect(f"https:{url}{quality}.mp4:Серия-{seria}:Перевод-{translations[translation_id]}:.mp4")
     except Exception as ex:
         return abort(500, f'Exception: {ex}')
 
@@ -126,9 +133,10 @@ def watch(serv, id, data, seria, quality = None):
             url = get_download_link(id, "kinopoisk", seria, translation_id, token)
         else:
             return abort(400)
-        url = "https:"+url+quality+".mp4"
+        straight_url = f"https:{url}{quality}.mp4"
+        url = f"/download/{serv}/{id}/{'-'.join(data)}/{quality}-{seria}"
         return render_template('watch.html',
-            url=url, seria=seria, series=series, id=id, id_type=id_type, data="-".join(data), quality=quality, serv=serv, 
+            url=url, seria=seria, series=series, id=id, id_type=id_type, data="-".join(data), quality=quality, serv=serv, straight_url=straight_url,
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     except:
         return abort(404)
@@ -152,4 +160,4 @@ def help():
     return redirect("https://github.com/YaNesyTortiK/Kodik-Download-Watch/blob/main/README.MD")
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)

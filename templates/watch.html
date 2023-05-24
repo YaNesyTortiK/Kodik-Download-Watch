@@ -20,7 +20,7 @@
     <div class="container mt-5">
       <h1>Серия {{ seria }} (<a href='https://kodikdb.com/find-player?{{ id_type }}ID={{ id }}&only_season=false'{% if is_dark %} class="dark-href"{% endif %}>Смотреть в Kodik'е</a>)</h1>
       <video controls="controls" width=70% autoplay>
-        <source src="{{ url }}" type='video/mp4'>
+        <source src="{{ straight_url }}" type='video/mp4'>
       </video>
       <p>
       {% if seria > 1 %}
@@ -47,7 +47,10 @@
       </form>
       {% endif %}
       <p>Текущее качество видео: {{ quality }}<br>Изменить: <a href='720/'{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href='480/'{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href='360/'{% if is_dark %} class="dark-href"{% endif %}>360</a></p>
+      <p>
       <a href='{{ url }}/'{% if is_dark %} class="dark-href"{% endif %}>Скачать эту серию</a>
+      (<a href='{{ straight_url }}/'{% if is_dark %} class="dark-href"{% endif %}>Прямая ссылка</a>)
+      </p>
       <p>Если у вас не найден плеер или не получается скачать, попробуйте сменить качество.</p>
     </div>
     <!-- Скрипты Bootstrap 5 -->
