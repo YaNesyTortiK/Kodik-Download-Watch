@@ -28,7 +28,6 @@ def index_form():
     
 @app.route("/change_theme/", methods=['POST'])
 def change_theme():
-    print(request.referrer)
     if "is_dark" in session.keys():
         session['is_dark'] = not(session['is_dark'])
     else:
