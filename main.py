@@ -1,14 +1,14 @@
 from flask import Flask, render_template, request, redirect, abort, session, send_file, send_from_directory
 from getters import *
 from json import load
+import config
 
 app = Flask(__name__)
-token = "447d179e875efe44217f20d1ee2146be"
-
-app.config['SECRET_KEY'] = "some_super_ultra_unbelievable_key"
+token = config.KODIK_TOKEN
+app.config['SECRET_KEY'] = config.APP_SECRET_KEY
 
 with open("translations.json", 'r') as f:
-    translations = json.load(f)
+    translations = load(f)
 
 @app.route('/')
 def index():
@@ -115,6 +115,10 @@ def redirect_to_player(serv, id, data, num):
     else:
         return redirect(f'/watch/{serv}/{id}/{data}/{num}/')
 
+@app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/<string:old_quality>/<string:quality>/')
+def change_watch_quality(serv, id, data, seria, old_quality = None, quality = None):
+    return redirect(f"/watch/{serv}/{id}/{data}/{seria}/{quality}/")
+
 @app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/')
 @app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/<string:quality>/')
 def watch(serv, id, data, seria, quality = None):
@@ -159,4 +163,4 @@ def help():
     return redirect("https://github.com/YaNesyTortiK/Kodik-Download-Watch/blob/main/README.MD")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=config.DEBUG)
