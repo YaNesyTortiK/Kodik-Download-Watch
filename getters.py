@@ -3,7 +3,9 @@ import lxml
 import json
 from bs4 import BeautifulSoup as Soup
 from base64 import b64decode
-from time import sleep
+from time import sleep, time
+from cache import Cache
+import config
 
 
 def convert_char(char: str):
@@ -19,33 +21,11 @@ def convert_char(char: str):
         return char
 
 def convert(string: str):
+    # Декодирование строки со ссылкой
     return "".join(map(convert_char, list(string)))
 
 def get_url_data(url: str, headers: dict = None, session=None):
     return requests.get(url, headers=headers).text
-
-def get_shiki_picture(shikimoriID: str):
-    """Returns main picture src and score of serial"""
-    headers = {
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 OPR/93.0.0.0 (Edition Yx GX)",
-    }
-    url = f"https://shikimori.one/animes/{shikimoriID}"
-    data = get_url_data(url, headers)
-    soup = Soup(data, 'lxml')
-    if soup.find("p", {"class": "error-404"}) != None:
-        url = soup.find("a")['href']
-        data = get_url_data(url, headers)
-        soup = Soup(data, 'lxml')
-    try:
-        name = soup.find('header', {'class': 'head'}).find('h1').text
-        try:
-            picture = soup.find('div', {"class": 'c-poster'}).find("div")['data-href']
-        except:
-            picture = soup.find('div', {"class": 'c-poster'}).find("img")['src']
-        score = soup.find('div', {'class': 'text-score'}).find('div').text
-    except:
-        raise FileNotFoundError("Ошибка поиска по шики")
-    return {"name": name, "pic": picture, "score": score}
 
 def is_serial(iframe_url: str) -> bool:
     return True if iframe_url[iframe_url.find(".info/")+6] == "s" else False
@@ -79,8 +59,7 @@ def get_link_to_serial_info(id: str, id_type: str, token: str):
         serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FkinopoiskID%3D{id}&token={token}&kinopoiskID={id}"
     else:
         raise ValueError("Неизвестный тип id")
-    data = get_url_data(serv)
-    return data
+    return get_url_data(serv)
 
 def get_serial_info(id: str, id_type: str, token: str) -> dict:
     """Returns dict {'series_count': int, 'translations': [{'id': 'str', 'type': 'str', 'name': 'str'}, ...]}
@@ -125,6 +104,7 @@ def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str
     data = get_url_data('https:'+url)
     soup = Soup(data, 'lxml')
     if translation_id != "0" and seria_num != 0:
+        # Обычный сериал (1+ серий)
         container = soup.find('div', {'class': 'serial-translations-box'}).find('select')
         media_hash = None
         media_id = None
@@ -138,6 +118,7 @@ def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str
         soup = Soup(data, 'lxml')
     
     elif translation_id != "0" and seria_num == 0:
+        # Видео с несколькими переводами
         container = soup.find('div', {'class': 'movie-translations-box'}).find('select')
         media_hash = None
         media_id = None
@@ -159,17 +140,18 @@ def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str
     video_id = hash_container[hash_container.find('.id = \'')+7:]
     video_id = video_id[:video_id.find('\'')]
 
-    download_url = str(get_download_link_with_data(video_type, video_hash, video_id, seria_num))
+    download_url = str(get_download_link_with_data(video_type, video_hash, video_id, seria_num)).replace("https://", '')
     download_url = download_url[2:-26] # :hls:manifest.m3u8
 
     return download_url
 
 def get_download_link_with_data(video_type: str, video_hash: str, video_id: str, seria_num: int):
     params={
-        "hash": video_hash, # "6476310cc6d90aa9304d5d8af3a91279"
-        "id": video_id, # 19850
+        # Данные для теста: hash: "6476310cc6d90aa9304d5d8af3a91279"  id: 19850  type: video
+        "hash": video_hash,
+        "id": video_id,
         "quality":"720p",
-        "type":video_type, # video
+        "type":video_type,
         "protocol": '',
         "host":"kodik.cc",
         "d":"kodik.cc",
@@ -190,7 +172,7 @@ def get_download_link_with_data(video_type: str, video_hash: str, video_id: str,
     except:
         return str(b64decode(url.encode()+b'==')).replace("https:", '')
 
-def get_search_data(search_query: str, token: str):
+def get_search_data(search_query: str, token: str, ch: Cache = None):
     payload = {
         "token": token,
         "title": search_query
@@ -200,12 +182,25 @@ def get_search_data(search_query: str, token: str):
     items = []
     others = []
     used_ids = []
-    # with open('datta.json', 'w') as f:
-    #     json.dump(data['results'], f)
     for item in data['results']:
-        # item['type'] == 'anime-serial' and 
         if 'shikimori_id' in item.keys() and item['shikimori_id'] not in used_ids:
-            ser_data = get_shiki_data(item['shikimori_id'])
+            # Проверка на наличие shikimori_id и на отсутствие его в уже добавленных тайтлах
+            if ch != None and ch.is_id("sh"+item['shikimori_id']):
+                # Проверка на наличие данных в кеше
+                ch_ser_data = ch.get_data_by_id("sh"+item['shikimori_id'])
+                if time() - ch_ser_data['last_updated'] > ch.life_time:
+                    # Обновление данных если они устарели (CACHE_LIFE_TIME был превышен)
+                    ser_data = get_shiki_data(item['shikimori_id'])
+                    ch.add_id("sh"+item['shikimori_id'],
+                        ser_data['title'], ser_data['image'], ser_data['score'], ser_data['status'], ser_data['date'], ser_data['type'])
+                else:
+                    ser_data = ch_ser_data
+            else:
+                # Если данных в кеше нет или кеш не используется
+                ser_data = get_shiki_data(item['shikimori_id'])
+                if ch != None:
+                    ch.add_id("sh"+item['shikimori_id'],
+                        ser_data['title'], ser_data['image'], ser_data['score'], ser_data['status'], ser_data['date'], ser_data['type'])
             dd = {
                 'image': ser_data['image'],
                 'id': item['shikimori_id'],
@@ -249,47 +244,45 @@ def get_shiki_data(id: str):
     soup = Soup(data, 'lxml')
     try:
         if soup.find('img', {'class': 'image'}).get_attribute_list('src')[0] == "/images/static/page_moved.jpg":
+            # Проверка на перемещение страницы
             new_id = soup.find("a").get_attribute_list('href')[0]
             new_id = new_id[new_id.rfind('/'):]
             return get_shiki_data(new_id)
         else:
+            # Страница не перемещена
             raise FileExistsError
     except:
         try:
-            a = soup.find("div", {'class': 'c-poster'}).find('picture').find('img')
+            if soup.find("div", {'class': 'b-age_restricted'}) == None:
+                # Проверка на возрастные ограничения
+                soup.find("div", {'class': 'c-poster'}).find('picture').find('img')
+            else:
+                raise PermissionError
+        except PermissionError:
+            title = f"18+ (Shikimori id: {id})"
+            image = config.IMAGE_AGE_RESTRICTED
+            p_data = "Неизвестно"
+            dtype = "Неизвестно"
+            dstatus = "Неизвестно"
+            ddate = "Неизвестно"
+            score = "Неизвестно"
         except:
-            # Сервер не допукает слишком частое обащение
+            # Сервер не допукает слишком частое обращение
             sleep(0.5)
             return get_shiki_data(id)
-        image = soup.find("div", {'class': 'c-poster'}).find('picture').find('img').get_attribute_list('src')[0]
-        p_data = soup.find('div', {'class': 'b-entry-info'}).find_all('div', {'class': 'line-container'})
-        dtype = p_data[0].find('div', {'class': 'value'}).text
-        dstatus = soup.find('div', {'class': 'b-entry-info'}).find('span', {'class': 'b-anime_status_tag'}).get_attribute_list('data-text')[0]
-        ddate = soup.find('div', {'class': 'b-entry-info'}).find('span', {'class': 'b-anime_status_tag'}).parent.text
+        else:
+            title = soup.find('header', {'class': 'head'}).find('h1').text
+            image = soup.find("div", {'class': 'c-poster'}).find('picture').find('img').get_attribute_list('src')[0]
+            p_data = soup.find('div', {'class': 'b-entry-info'}).find_all('div', {'class': 'line-container'})
+            dtype = p_data[0].find('div', {'class': 'value'}).text
+            dstatus = soup.find('div', {'class': 'b-entry-info'}).find('span', {'class': 'b-anime_status_tag'}).get_attribute_list('data-text')[0]
+            ddate = soup.find('div', {'class': 'b-entry-info'}).find('span', {'class': 'b-anime_status_tag'}).parent.text[2:].strip()
+            score = soup.find('div', {'class': 'text-score'}).find('div').text
         return {
+            'title': title,
             'image': image,
             'type': dtype,
             'date': ddate,
-            'status': dstatus
+            'status': dstatus,
+            'score': score
         }
-
-
-def get_shiki_search_data(search_query: str):
-    headers = {
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 OPR/93.0.0.0 (Edition Yx GX)",
-    }
-    url = f"https://shikimori.me/animes?search={search_query}"
-    data = get_url_data(url, headers)
-    soup = Soup(data, 'lxml')
-    items = []
-    for item in soup.find('div', {'class': 'cc-entries'}).find_all('article'):
-        dd = {
-            'image': item.find('meta').get_attribute_list("content")[0],
-            'id': item.get_attribute_list("id")[0],
-            'type': item.find('span', {'class': 'misc'}).find_all('span')[1].text,
-            'date': item.find('span', {'class': 'misc'}).find_all('span')[0].text,
-            'title': item.text,
-        }
-        dd['title'] = dd['title'].replace(dd['type'], '', 1).replace(dd['date'], '', 1)
-        items.append(dd)
-    return items

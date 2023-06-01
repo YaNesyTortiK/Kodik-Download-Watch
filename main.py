@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, abort, session, send_file, send_from_directory
+from flask import Flask, render_template, request, redirect, abort, session
 from getters import *
 from json import load
 import config
@@ -8,7 +8,14 @@ token = config.KODIK_TOKEN
 app.config['SECRET_KEY'] = config.APP_SECRET_KEY
 
 with open("translations.json", 'r') as f:
+    # Используется для указания озвучки при скачивании файла
     translations = load(f)
+
+if config.USE_SAVED_DATA or config.SAVE_DATA:
+    from cache import Cache
+    ch = Cache(config.SAVED_DATA_FILE, config.SAVING_PERIOD, config.CACHE_LIFE_TIME)
+ch_save = config.SAVE_DATA
+ch_use = config.USE_SAVED_DATA
 
 @app.route('/')
 def index():
@@ -21,13 +28,14 @@ def index_form():
         return redirect(f"/download/sh/{data['shikimori_id']}/")
     if 'kinopoisk_id' in data.keys():
         return redirect(f"/download/kp/{data['kinopoisk_id']}/")
-    elif 'kdk' in data.keys(): # Kodik
+    elif 'kdk' in data.keys(): # kdk = Kodik
         return redirect(f"/search/kdk/{data['kdk']}/")
     else:
         return abort(400)
     
 @app.route("/change_theme/", methods=['POST'])
 def change_theme():
+    # Костыль для смены темы
     if "is_dark" in session.keys():
         session['is_dark'] = not(session['is_dark'])
     else:
@@ -38,45 +46,62 @@ def change_theme():
 def search_page(db, query):
     if db == "kdk":
         try:
-            s_data = get_search_data(query, token)
+            # Попытка получить данные с кодика
+            s_data = get_search_data(query, token, ch if ch_save or ch_use else None)
             return render_template('search.html', items=s_data[0], others=s_data[1], is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
         except:
             return render_template('search.html', is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     else:
+        # Другие базы не поддерживаются (возможно в будующем будут)
         return abort(400)
 
 @app.route('/download/<string:serv>/<string:id>/')
 def download_shiki_choose_translation(serv, id):
     if serv == "sh":
+        if ch_use and ch.is_id("sh"+id):
+            # Проверка кеша на наличие данных
+            cached = ch.get_data_by_id("sh"+id)
+            name = cached['title']
+            pic = cached['image']
+            score = cached['score']
+        else:
+            try:
+                # Попытка получить данные с шики
+                data = get_shiki_data(id)
+                name = data['title']
+                pic = data['image']
+                score = data['score']
+            except:
+                name = 'Неизвестно'
+                pic = 'https://ih1.redbubble.net/image.343726250.4611/flat,1000x1000,075,f.jpg'
+                score = 'Неизвестно'
+            finally:
+                if ch_save and not ch.is_id("sh"+id):
+                    # Записываем данные в кеш если их там нет
+                    ch.add_id("sh"+id, name, pic, score, data['status'] if data else "Неизвестно", data['date'] if data else "Неизвестно", data['type'] if data else "Неизвестно", )
+
         try:
-            data = get_shiki_picture(id)
-            name = data['name']
-            pic = data['pic']
-            score = data['score']
-        except:
-            name = 'Неизвестно'
-            pic = 'resources/no-image.png'
-            score = 'Неизвестно'
-        try:
+            # Получаем данные о наличии переводов от кодика
             serial_data = get_serial_info(id, "shikimori", token)
         except Exception as ex:
             return f"""
             <h1>По данному запросу нет данных</h1>
-            <p>Exception type: {ex}</p>
+            {f'<p>Exception type: {ex}</p>' if config.DEBUG else ''}
             """
         return render_template('info.html', 
             title=name, image=pic, score=score, translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     elif serv == "kp":
         try:
+            # Получаем данные о наличии переводов от кодика
             serial_data = get_serial_info(id, "kinopoisk", token)
         except Exception as ex:
             return f"""
             <h1>По данному запросу нет данных</h1>
-            <p>Exception type: {ex}</p>
+            {f'<p>Exception type: {ex}</p>' if config.DEBUG else ''}
             """
         return render_template('info.html', 
-            title="...", image="https://ih1.redbubble.net/image.343726250.4611/flat,1000x1000,075,f.jpg", score="Нет информации", translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
+            title="...", image=config.IMAGE_NOT_FOUND, score="Нет информации", translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     else:
         return abort(400)
@@ -96,9 +121,33 @@ def redirect_to_download(serv, id, data, data2):
     seria = int(data2[1])
     try:
         if serv == "sh":
-            url = get_download_link(id, "shikimori", seria, translation_id, token)
+            if ch_use and ch.is_seria("sh"+id, translation_id, seria):
+                # Получаем данные из кеша (если есть и используется)
+                url = ch.get_seria("sh"+id, translation_id, seria)
+            else:
+                # Получаем данные с сервера
+                url = get_download_link(id, "shikimori", seria, translation_id, token)
+                if ch_save and not ch.is_seria("sh"+id, translation_id, seria):
+                    # Записываем данные в кеш
+                    try:
+                        # Попытка записать данные к уже имеющимся данным
+                        ch.add_seria("sh"+id, translation_id, seria, url)
+                    except KeyError:
+                        pass
         elif serv == "kp":
-            url = get_download_link(id, "kinopoisk", seria, translation_id, token)
+            if ch_use and ch.is_seria("kp"+id, translation_id, seria):
+                # Получаем данные из кеша (если есть и используется)
+                url = ch.get_seria("kp"+id, translation_id, seria)
+            else:
+                # Получаем данные с сервера
+                url = get_download_link(id, "kinopoisk", seria, translation_id, token)
+                if ch_save and not ch.is_seria("kp"+id, translation_id, seria):
+                    # Записываем данные в кеш
+                    try:
+                        # Попытка записать данные к уже имеющимся данным
+                        ch.add_seria("kp"+id, translation_id, seria, url)
+                    except KeyError:
+                        pass
         else:
             return abort(400)
         if seria == 0:
@@ -130,14 +179,36 @@ def watch(serv, id, data, seria, quality = None):
         translation_id = str(data[1])
         if serv == "sh":
             id_type = "shikimori"
-            url = get_download_link(id, "shikimori", seria, translation_id, token)
+            if ch_use and ch.is_seria("sh"+id, translation_id, seria):
+                # Получаем данные из кеша (если есть и используется)
+                url = ch.get_seria("sh"+id, translation_id, seria)
+            else:
+                # Получаем данные с сервера
+                url = get_download_link(id, "shikimori", seria, translation_id, token)
+                if ch_save and not ch.is_seria("sh"+id, translation_id, seria):
+                    # Записываем данные в кеш
+                    try:
+                        ch.add_seria("sh"+id, translation_id, seria, url)
+                    except KeyError:
+                        pass
         elif serv == "kp":
             id_type = "kinopoisk"
-            url = get_download_link(id, "kinopoisk", seria, translation_id, token)
+            if ch_use and ch.is_seria("kp"+id, translation_id, seria):
+                # Получаем данные из кеша (если есть и используется)
+                url = ch.get_seria("kp"+id, translation_id, seria)
+            else:
+                # Получаем данные с сервера
+                url = get_download_link(id, "kinopoisk", seria, translation_id, token)
+                if ch_save and not ch.is_seria("kp"+id, translation_id, seria):
+                    # Записываем данные в кеш
+                    try:
+                        ch.add_seria("kp"+id, translation_id, seria, url)
+                    except KeyError:
+                        pass
         else:
             return abort(400)
-        straight_url = f"https:{url}{quality}.mp4"
-        url = f"/download/{serv}/{id}/{'-'.join(data)}/{quality}-{seria}"
+        straight_url = f"https:{url}{quality}.mp4" # Прямая ссылка
+        url = f"/download/{serv}/{id}/{'-'.join(data)}/{quality}-{seria}" # Ссылка на скачивание через этот сервер
         return render_template('watch.html',
             url=url, seria=seria, series=series, id=id, id_type=id_type, data="-".join(data), quality=quality, serv=serv, straight_url=straight_url,
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
@@ -147,6 +218,7 @@ def watch(serv, id, data, seria, quality = None):
 @app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/', methods=['POST'])
 @app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/<string:quality>/', methods=['POST'])
 def change_seria(serv, id, data, seria, quality=None):
+    # Если использовалась форма для изменения серии
     try:
         new_seria = int(dict(request.form)['seria'])
     except:
@@ -160,6 +232,7 @@ def change_seria(serv, id, data, seria, quality=None):
 
 @app.route('/help/')
 def help():
+    # Заглушка
     return redirect("https://github.com/YaNesyTortiK/Kodik-Download-Watch/blob/main/README.MD")
 
 if __name__ == "__main__":
