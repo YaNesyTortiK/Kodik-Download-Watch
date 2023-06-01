@@ -1,4 +1,4 @@
-from json import load, dump
+from json import load, dump, JSONDecodeError
 from time import time
 
 class Cache:
@@ -21,7 +21,12 @@ class Cache:
     """
     def __init__(self, SAVED_DATA_FILE: str, SAVING_PERIOD: int, CACHE_LIVE_TIME: int):
         self._path = SAVED_DATA_FILE
-        self.data = self.get_data_from_file()
+        try:
+            self.data = self.get_data_from_file()
+        except JSONDecodeError:
+            with open(SAVED_DATA_FILE, 'w') as f:
+                dump({}, f)
+            self.data = {}
         self.__t = time()
         self.period = SAVING_PERIOD*60 # Перевод в секунды из минут
         self.life_time = CACHE_LIVE_TIME*24*60*60 # Перевод в секунды из дней
