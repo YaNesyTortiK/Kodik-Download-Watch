@@ -19,14 +19,49 @@
     </table>
     <div class="container mt-5">
       <h1 class="mb-4">{{ title }}</h1>
-      <img src="{{ image }}" height=500px>
-      <h3>Оценка шикимори: {{ score }}</h3>
+      {% if request.MOBILE %}
+        <img src="{{ image }}" height=500px style="padding-bottom: 10px;">
+        <br>
+        <p><font size="4">
+          Тип: {{ dtype }}<br>
+          Статус: {{ status }}<br>
+          Даты выхода: {{ date }}<br>
+          Оценка шикимори: {{ score }}
+        </font></p>
+      {% else %}
+        <table style="padding-bottom: 10px;">
+          <tr>
+            <td>
+              <img src="{{ image }}" height=500px>
+            </td>
+            <td style="vertical-align: top;">
+              <p style="padding-left: 30px;"><font size="5">
+              Тип: {{ dtype }}<br>
+              Статус: {{ status }}<br>
+              Даты выхода: {{ date }}<br>
+              Оценка шикимори: {{ score }}
+              </font></p>
+            </td>
+          </tr>
+        </table>
+      {% endif %}
       <hr>
-      <h5>Выберите перевод:</h5>
+      <h5>Выберите перевод: (Всего {{ translations|length }})</h5>
+      <table>
       {% for translation in translations %}
-      <p>{{ translation.type }}<a href="{{ series_count }}-{{ translation.id }}/" {% if is_dark %} class="dark-href"{% endif %}>{{ translation.name }}</a> | 
-        <a href="{{ series_count }}-{{ translation.id }}/watch-{% if series_count == 0 %}0{% else %}1{% endif %}/" {% if is_dark %} class="dark-href"{% endif %}>Смотреть онлайн</a></p>
+      <tr>
+        <td width=100px>
+          <font size="4">{{ translation.type }}</font>
+        </td>
+        <td width=250px>
+          <font size="4"><a href="{{ series_count }}-{{ translation.id }}/" {% if is_dark %} class="dark-href"{% endif %}>{{ translation.name }}</a></font>
+        </td>
+        <td>
+          <font size="4"><a href="{{ series_count }}-{{ translation.id }}/watch-{% if series_count == 0 %}0{% else %}1{% endif %}/" {% if is_dark %} class="dark-href"{% endif %}>Смотреть онлайн</a></font>
+        </td>
+      </tr>
       {% endfor %}
+      </table>
     </div>
     <!-- Скрипты Bootstrap 5 -->
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>

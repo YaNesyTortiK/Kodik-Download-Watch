@@ -29,45 +29,51 @@
     </div>
     <div class="container mt-5">
     <h1 class="mb-4">Аниме:</h1><hr>
-    <table>
-      <tr>
-      {% for item in items %}
-      <th>
-      <div class="mb-3">
-        <a href="/download/sh/{{ item.id }}/" class="{% if is_dark %}dark-{% endif %}black-href">
-        <table>
-          <td><th>
-            <img src='{{ item.image }}' height=200px>
-          </th></td>
-          <td><th>
-            <h5>{{ item.title }}</h5>
-            <p>Тип: {{ item.type }}<br>Даты:<br>{{ item.date }}<br>Статус: {{ item.status }}</p>
-          </th></td>
-        </table>
-        </a>
-      </div>
-      </th>
-        {% if loop.index % 3 == 0 %}
-        </tr></tr>
-        {% endif %}
-      {% else %}
-      <div class="mb-3">
-      <th><h5>По вашему запросу ничего не найдено</h5></th>
-      </div>
-      {% endfor %}
+    <table width=100%>
+      <tr width=100%>
+        {% for item in items %}
+        <th width="{{ 100/ 1 if request.MOBILE else 3 }}%">
+          <div class="mb-3">
+            <a href="/download/sh/{{ item.id }}/" class="{% if is_dark %}dark-{% endif %}black-href">
+            <table width=100%>
+              <td>
+                <th width=30%>
+                  <img src='{{ item.image }}' height=200px width=150px>
+                </th>
+              </td>
+              <td>
+                <th width=70%>
+                  <h5>{{ item.title }}</h5>
+                  <p>Тип: {{ item.type }}<br>Даты:<br>{{ item.date }}<br>Статус: {{ item.status }}</p>
+                </th>
+              </td>
+            </table>
+            </a>
+          </div>
+        </th>
+          {% if loop.index % (1 if request.MOBILE else 3) == 0 %}
+            </tr><tr width=100%>
+          {% endif %}
+        {% else %}
+          <div class="mb-3">
+            <th><h5>По вашему запросу ничего не найдено</h5></th>
+          </div>
+        {% endfor %}
       </tr>
     </table>
-    <hr><h1 class="mb-4">Прочее:</h1><hr>
-    <ul>
-    {% for item in others %}
-      <li>
-        <a href="/download/kp/{{ item.id }}/" class="{% if is_dark %}dark-{% endif %}black-href">
-        {{ item.type }}: {{ item.title }}<br>
-        {{ item.date }}
-        </a>
-      </li>
-    {% endfor %}
-    </ul>
+    {% if others %}
+      <hr><h1 class="mb-4">Прочее:</h1><hr>
+      <ul>
+      {% for item in others %}
+        <li>
+          <a href="/download/kp/{{ item.id }}/" class="{% if is_dark %}dark-{% endif %}black-href">
+          {{ item.type }}: {{ item.title }}<br>
+          {{ item.date }}
+          </a>
+        </li>
+      {% endfor %}
+      </ul>
+    {% endif %}
     </div>
     <!-- Скрипты Bootstrap 5 -->
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>

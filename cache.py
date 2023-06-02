@@ -105,6 +105,13 @@ class Cache:
         if time() - self.__t > self.period:
             self.__t = time()
             self.save_data_to_file()
+    
+    def change_image(self, id: str, image_src: str):
+        if self.is_id(id):
+            temp = self.get_data_by_id(id)
+            temp['image'] = image_src
+            del self.data[id]
+            self.data[id] = temp
 
     def is_id(self, id: str) -> bool:
         try:
@@ -132,5 +139,3 @@ class Cache:
                 return False
         except KeyError:
             return False
-
-    

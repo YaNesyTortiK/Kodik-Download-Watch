@@ -1,9 +1,12 @@
-from flask import Flask, render_template, request, redirect, abort, session
+from flask import Flask, render_template, request, redirect, abort, session, send_file
+from flask_mobility import Mobility
 from getters import *
 from json import load
 import config
 
 app = Flask(__name__)
+Mobility(app)
+
 token = config.KODIK_TOKEN
 app.config['SECRET_KEY'] = config.APP_SECRET_KEY
 
@@ -58,22 +61,33 @@ def search_page(db, query):
 @app.route('/download/<string:serv>/<string:id>/')
 def download_shiki_choose_translation(serv, id):
     if serv == "sh":
+        cache_used = False
         if ch_use and ch.is_id("sh"+id):
             # Проверка кеша на наличие данных
             cached = ch.get_data_by_id("sh"+id)
             name = cached['title']
             pic = cached['image']
             score = cached['score']
-        else:
+            dtype = cached['type']
+            date = cached['date']
+            status = cached['status']
+            if is_good_quality_image(pic):
+                # Проверка что была сохранена картинка в полном качестве
+                # (При поиске по шики, выдаются картинки в урезанном качестве)
+                cache_used = True
+        if not cache_used:
             try:
                 # Попытка получить данные с шики
                 data = get_shiki_data(id)
                 name = data['title']
                 pic = data['image']
                 score = data['score']
+                dtype = data['type']
+                date = data['date']
+                status = data['status']
             except:
                 name = 'Неизвестно'
-                pic = 'https://ih1.redbubble.net/image.343726250.4611/flat,1000x1000,075,f.jpg'
+                pic = config.IMAGE_AGE_RESTRICTED
                 score = 'Неизвестно'
             finally:
                 if ch_save and not ch.is_id("sh"+id):
@@ -90,6 +104,7 @@ def download_shiki_choose_translation(serv, id):
             """
         return render_template('info.html', 
             title=name, image=pic, score=score, translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
+            dtype=dtype, date=date, status=status,
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     elif serv == "kp":
         try:
@@ -101,7 +116,8 @@ def download_shiki_choose_translation(serv, id):
             {f'<p>Exception type: {ex}</p>' if config.DEBUG else ''}
             """
         return render_template('info.html', 
-            title="...", image=config.IMAGE_NOT_FOUND, score="Нет информации", translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
+            title="...", image=config.IMAGE_NOT_FOUND, score="...", translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
+            dtype="...", date="...", status="...",
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     else:
         return abort(400)
@@ -234,6 +250,10 @@ def change_seria(serv, id, data, seria, quality=None):
 def help():
     # Заглушка
     return redirect("https://github.com/YaNesyTortiK/Kodik-Download-Watch/blob/main/README.MD")
+
+@app.route('/resources/<string:path>')
+def resources(path: str):
+    return send_file(f'resources\\{path}')
 
 if __name__ == "__main__":
     app.run(debug=config.DEBUG)

@@ -272,7 +272,8 @@ def get_shiki_data(id: str):
             return get_shiki_data(id)
         else:
             title = soup.find('header', {'class': 'head'}).find('h1').text
-            image = soup.find("div", {'class': 'c-poster'}).find('picture').find('img').get_attribute_list('src')[0]
+            image = soup.find("div", {'class': 'c-poster'}).find('div').get_attribute_list('data-href')[0]
+            # image = soup.find("div", {'class': 'c-poster'}).find('picture').find('img').get_attribute_list('src')[0]
             p_data = soup.find('div', {'class': 'b-entry-info'}).find_all('div', {'class': 'line-container'})
             dtype = p_data[0].find('div', {'class': 'value'}).text
             dstatus = soup.find('div', {'class': 'b-entry-info'}).find('span', {'class': 'b-anime_status_tag'}).get_attribute_list('data-text')[0]
@@ -286,3 +287,13 @@ def get_shiki_data(id: str):
             'status': dstatus,
             'score': score
         }
+    
+def is_good_quality_image(src: str) -> bool:
+    if "preview" in src or "main_alt" in src:
+        return False
+    else:
+        return True
+
+if __name__ == "__main__":
+    from pprint import pprint
+    pprint(get_shiki_data("z20"))
