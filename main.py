@@ -255,5 +255,9 @@ def help():
 def resources(path: str):
     return send_file(f'resources\\{path}')
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_file(config.FAVICON_PATH)
+
 if __name__ == "__main__":
     app.run(debug=config.DEBUG)
