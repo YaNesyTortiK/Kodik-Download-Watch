@@ -48,11 +48,13 @@
       {% endif %}
       <p>Текущее качество видео: {{ quality }}<br>Изменить: <a href='720/'{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href='480/'{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href='360/'{% if is_dark %} class="dark-href"{% endif %}>360</a></p>
       <p>
+        {% if allow_watch_together %}
         <form action='/create_room/' method="POST" novalidate>
           <div class="mb-3">
             <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position: relative; top:8px">Смотреть вместе</button>
           </div>
         </form>
+        {% endif %}
       </p>
       <p>
         <a href='{{ url }}/'{% if is_dark %} class="dark-href"{% endif %}>Скачать эту серию</a>

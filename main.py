@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, abort, session, send_file
+from flask_socketio import SocketIO, send, emit, join_room, leave_room
 from flask_mobility import Mobility
 from getters import *
 import watch_together
@@ -7,6 +8,7 @@ import config
 
 app = Flask(__name__)
 Mobility(app)
+socketio = SocketIO(app)
 
 token = config.KODIK_TOKEN
 app.config['SECRET_KEY'] = config.APP_SECRET_KEY
@@ -230,6 +232,7 @@ def watch(serv, id, data, seria, quality = None):
         url = f"/download/{serv}/{id}/{'-'.join(data)}/{quality}-{seria}" # Ссылка на скачивание через этот сервер
         return render_template('watch.html',
             url=url, seria=seria, series=series, id=id, id_type=id_type, data="-".join(data), quality=quality, serv=serv, straight_url=straight_url,
+            allow_watch_together=config.ALLOW_WATCH_TOGETER,
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     except:
         return abort(404)
@@ -250,8 +253,7 @@ def change_seria(serv, id, data, seria, quality=None):
         return redirect(f"/watch/{serv}/{id}/{'-'.join(data)}/{new_seria}{'/'+quality if quality != None else ''}")
     
 
-# Watch Together Part ===================================================
-
+# Watch Together ===================================================
 @app.route('/create_room/', methods=['POST'])
 def create_room():
     orig = request.referrer
@@ -268,15 +270,18 @@ def create_room():
         'seria': int(data[-3]),
         'quality': int(data[-2]),
         'pause': False,
-        'play_time': 0
+        'play_time': 0,
     }
-    print(data)
     rid = watch_manager.new_room(data)
+    watch_manager.remove_old_rooms()
     return redirect(f"/room/{rid}/")
 
 @app.route('/room/<string:rid>/', methods=["GET"])
 def room(rid):
+    if not watch_manager.is_room(rid):
+        return abort(404)
     rd = watch_manager.get_room_data(rid)
+    watch_manager.room_used(rid)
     try:
         id = rd['id']
         seria = rd['seria']
@@ -321,24 +326,60 @@ def room(rid):
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     except:
         return abort(500)
-    # return {"rid": rid, "data": watch_manager.get_room_data(rid)}
 
-@app.route('/synchronize/<string:rid>/', methods=['POST'])
-def synchronize(rid):
-    data = dict(request.json)
+@app.route('/room/<string:rid>/', methods=["POST"])
+def change_room_seria_form(rid):
+    data = dict(request.form)['seria']
     rdata = watch_manager.get_room_data(rid)
-    # print("\tBef:", data, rdata, sep='\n')
-    if data['clicked']:
-        rdata['pause'] = data['pause']
-        rdata['play_time'] = data['play_time']
-        watch_manager.update_room(rid, rdata)
-    else:
-        watch_manager.room_used(rid)
-    return rdata
+    if data == '':
+        pass
+    rdata['seria'] = int(data)
+    rdata['play_time'] = 0
+    watch_manager.room_used(rid)
+    socketio.send({"data": {"status": 'update_page', 'time': 0}}, to=rid)
+    return redirect(f"/room/{rid}/")
+
+@app.route('/room/<string:rid>/cs-<int:seria>/')
+def change_room_seria(rid, seria):
+    if not watch_manager.is_room(rid):
+        return abort(400)
+    rdata = watch_manager.get_room_data(rid)
+    rdata['seria'] = seria
+    rdata['play_time'] = 0
+    watch_manager.room_used(rid)
+    socketio.send({"data": {"status": 'update_page', 'time': 0}}, to=rid)
+    return redirect(f"/room/{rid}/")
+
+@app.route('/room/<string:rid>/cq-<int:quality>/')
+def change_room_quality(rid, quality):
+    if not watch_manager.is_room(rid):
+        return abort(400)
+    rdata = watch_manager.get_room_data(rid)
+    rdata['quality'] = quality
+    watch_manager.room_used(rid)
+    socketio.send({"data": {"status": 'update_page', 'time': rdata['play_time']}}, to=rid)
+    return redirect(f"/room/{rid}/")
     
 
 # =======================================================================
+# Sockets ====================================
 
+@socketio.on('join')
+def on_join(data):
+    join_room(data['rid'])
+    if not watch_manager.is_room(data['rid']):
+        pass
+    watch_manager.room_used(data['rid'])
+    return send({'data': {'status': 'loading', 'time': watch_manager.get_room_data(data['rid'])['play_time']}}, to=data['rid'])
+
+@socketio.on('broadcast')
+def broadcast(data):
+    watch_manager.room_used(data['rid'])
+    watch_manager.update_play_time(data['rid'], data['data']['time'])
+    return send(data, to=data['rid'])
+
+#  ===========================================
+# Shortcuts vvvv
 
 @app.route('/help/')
 def help():
@@ -354,4 +395,5 @@ def favicon():
     return send_file(config.FAVICON_PATH)
 
 if __name__ == "__main__":
-    app.run(debug=config.DEBUG)
+    socketio.run(app, debug=config.DEBUG)
+    

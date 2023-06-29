@@ -3,9 +3,9 @@ from hashlib import md5
 
 class Manager:
     def __init__(self, remove_time: int):
-        # remove_time - seconds через какое время простоя комната будет удалена
+        # remove_time - minutes через какое время простоя комната будет удалена
         self.rooms = {}
-        self.remove_time = remove_time
+        self.remove_time = remove_time * 60
 
     def new_room(self, data: dict) -> str:
         now = time()
@@ -27,6 +27,9 @@ class Manager:
         self.rooms[id] = data
         self.room_used(id)
 
+    def update_play_time(self, id: str, play_time: float):
+        self.rooms[id]['play_time'] = play_time
+
     def room_used(self, id: str):
         self.rooms[id]['last_used'] = time()
     
@@ -35,8 +38,3 @@ class Manager:
         for room_id in self.rooms.keys():
             if self.rooms[room_id]['last_used']+self.remove_time < now:
                 del self.rooms[room_id]
-    
-
-if __name__ == "__main__":
-    m = Manager()
-    print(m.new_room({'a': 1, "b": 23}))

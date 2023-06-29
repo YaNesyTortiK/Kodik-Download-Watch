@@ -1,46 +1,36 @@
-
 const video = document.querySelector("video");
 
-let my_data = {
-    "pause": false,
-    "play_time": 0,
-    "clicked": false,
+var socket = io();
+let hrf = window.location.href;
+let rid = hrf.slice(hrf.slice(0, -5).lastIndexOf('/')+1, -1);
+
+video.onpause = function() {
+    socket.emit("broadcast", {data: {'status': 'paused', 'time': video.currentTime}, rid: rid})
 }
 
-async function getJson() {
-    let hrf = window.location.href;
-    let url = "/synchronize/"+hrf.slice(hrf.slice(0, -5).lastIndexOf('/')+1);
+video.onplay = function() {
+    socket.emit("broadcast", {data: {'status': 'playing', 'time': video.currentTime}, rid: rid})
+}
 
-    my_data['play_time'] = video.currentTime
+socket.on('connect', function() {
+    socket.emit('join', {data: 'I\'m connected!', rid: rid});
+});
 
-    let p_bef = my_data['pause']
-    my_data['pause'] = video.paused
-    if (p_bef != my_data['pause']) {
-        my_data['clicked'] = true;
-    }
-
-    var res = await fetch(url, {
-        method: "POST",
-        body: JSON.stringify(my_data),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8"
-        }
-      });
-    myArray = await res.json();
-
-    my_data['clicked'] = false;
-    
-    if (myArray['pause'] && !my_data['pause'])  {
-        video.currentTime = myArray['play_time']
-        my_data['play_time'] = myArray['play_time']
+socket.on('message', (event) => {
+    // console.log(`[message] Данные получены с сервера: ${event.data.status}, ${event}`);
+    if (event.data.status == 'loading') {
+        video.currentTime = event.data.time;
         video.pause();
-    } 
-    if (!myArray['pause'] && my_data['pause']){
-        video.currentTime = myArray['play_time']
-        my_data['play_time'] = myArray['play_time']
+    }
+    if (event.data.status == 'playing') {
+        video.currentTime = event.data.time;
         video.play();
     }
-
-}
-
-setInterval(getJson, 500)
+    if (event.data.status == 'paused') {
+        video.currentTime = event.data.time;
+        video.pause();
+    }
+    if (event.data.status == 'update_page') {
+        window.location.reload();
+    }
+})

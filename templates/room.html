@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Серия {{ seria }}</title>
+    <title>Совместный просмотр</title>
     <!-- Стили Bootstrap 5 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
   </head>
@@ -18,25 +18,25 @@
       </tr>
     </table>
     <div class="container mt-5">
-      <h1>(InWork)Серия {{ seria }} (<a href='https://kodikdb.com/find-player?{{ id_type }}ID={{ id }}&only_season=false'{% if is_dark %} class="dark-href"{% endif %}>Смотреть в Kodik'е</a>)</h1>
+      <h1 id="header">Совместный просмотр. Серия {{ seria }} (<a href='https://kodikdb.com/find-player?{{ id_type }}ID={{ id }}&only_season=false'{% if is_dark %} class="dark-href"{% endif %}>Смотреть в Kodik'е</a>)</h1>
       <video controls="controls" width="100%" autoplay id='vid'>
         <source src="{{ straight_url }}#t={{ start_time }}" type='video/mp4'>
       </video>
-      <p>
+      <p id="seria_swapper">
       {% if seria > 1 %}
-      <a href='/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria-1 }}/{{ quality }}/'{% if is_dark %} class="dark-href"{% endif %}>Предыдущая серия</a>
+      <a href='cs-{{ seria-1 }}/'{% if is_dark %} class="dark-href"{% endif %}>Предыдущая серия</a>
       {% endif %}
       {% if seria > 1 and seria < series %}
        | 
       {% endif %}
       {% if seria < series %}
-      <a href='/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria+1 }}/{{ quality }}/'{% if is_dark %} class="dark-href"{% endif %}>Следующая серия</a>
+      <a href='cs-{{ seria+1 }}/'{% if is_dark %} class="dark-href"{% endif %}>Следующая серия</a>
       {% endif %}
       </p>
       {% if seria > 0 %}
       <form method="POST" novalidate>
         <div class="mb-3">
-        <label for="choose_seria_num" class="form-label">(InWork)Введите номер серии (1-{{ data[:data.find("-")] }}):</label>
+        <label for="choose_seria_num" class="form-label">Введите номер серии (1-{{ data[:data.find("-")] }}):</label>
         <table style="position:relative; top:-15px">
           <tr>
             <td><input id="choose_seria_num" name="seria" required autocomplete=off cols="10" maxlength='80' class="{% if is_dark %}dark-{% endif %}form-control" style="width: 100px;"></td>
@@ -46,15 +46,14 @@
         </div>
       </form>
       {% endif %}
-      <p>(InWork)Текущее качество видео: {{ quality }}<br>Изменить: <a href='720/'{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href='480/'{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href='360/'{% if is_dark %} class="dark-href"{% endif %}>360</a></p>
-      <p>
-        <a href='{{ url }}/'{% if is_dark %} class="dark-href"{% endif %}>Скачать эту серию</a>
-        (<a href='{{ straight_url }}/'{% if is_dark %} class="dark-href"{% endif %}>Прямая ссылка</a>)
-      </p>
+      <p id="current_quality">Текущее качество видео: {{ quality }}<br>Изменить: <a href='cq-720/'{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href='cq-480/'{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href='cq-360/'{% if is_dark %} class="dark-href"{% endif %}>360</a></p>
       <p>Если у вас не найден плеер или не получается скачать, попробуйте сменить качество.</p>
     </div>
     <!-- Скрипты Bootstrap 5 -->
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <!-- Скрипты Socket -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <!-- Скрипт комнаты -->
     <script src="{{ url_for('static', filename='js/room_funcs.js') }}"></script>
   </body>
 </html>
