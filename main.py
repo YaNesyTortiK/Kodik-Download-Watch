@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, abort, session, send_file
 from flask_mobility import Mobility
 from getters import *
+import watch_together
 from json import load
 import config
 
@@ -19,6 +20,8 @@ if config.USE_SAVED_DATA or config.SAVE_DATA:
     ch = Cache(config.SAVED_DATA_FILE, config.SAVING_PERIOD, config.CACHE_LIFE_TIME)
 ch_save = config.SAVE_DATA
 ch_use = config.USE_SAVED_DATA
+
+watch_manager = watch_together.Manager(config.REMOVE_TIME)
 
 @app.route('/')
 def index():
@@ -245,6 +248,97 @@ def change_seria(serv, id, data, seria, quality=None):
         return abort(400, "Данная серия не существует")
     else:
         return redirect(f"/watch/{serv}/{id}/{'-'.join(data)}/{new_seria}{'/'+quality if quality != None else ''}")
+    
+
+# Watch Together Part ===================================================
+
+@app.route('/create_room/', methods=['POST'])
+def create_room():
+    orig = request.referrer
+    data = orig.split("/")
+    if len(data) == 9:
+        data[8] = 720
+        data.append('')
+    temp = data[-4].split('-')
+    data = {
+        'serv': data[-6],
+        'id': data[-5],
+        'series_count': int(temp[0]),
+        'translation_id': temp[1],
+        'seria': int(data[-3]),
+        'quality': int(data[-2]),
+        'pause': False,
+        'play_time': 0
+    }
+    print(data)
+    rid = watch_manager.new_room(data)
+    return redirect(f"/room/{rid}/")
+
+@app.route('/room/<string:rid>/', methods=["GET"])
+def room(rid):
+    rd = watch_manager.get_room_data(rid)
+    try:
+        id = rd['id']
+        seria = rd['seria']
+        series = rd['series_count']
+        translation_id = str(rd['translation_id'])
+        quality = rd['quality']
+        if rd['serv'] == "sh":
+            id_type = "shikimori"
+            if ch_use and ch.is_seria("sh"+id, translation_id, seria):
+                # Получаем данные из кеша (если есть и используется)
+                url = ch.get_seria("sh"+id, translation_id, seria)
+            else:
+                # Получаем данные с сервера
+                url = get_download_link(id, "shikimori", seria, translation_id, token)
+                if ch_save and not ch.is_seria("sh"+id, translation_id, seria):
+                    # Записываем данные в кеш
+                    try:
+                        ch.add_seria("sh"+id, translation_id, seria, url)
+                    except KeyError:
+                        pass
+        elif rd['serv'] == "kp":
+            id_type = "kinopoisk"
+            if ch_use and ch.is_seria("kp"+id, translation_id, seria):
+                # Получаем данные из кеша (если есть и используется)
+                url = ch.get_seria("kp"+id, translation_id, seria)
+            else:
+                # Получаем данные с сервера
+                url = get_download_link(id, "kinopoisk", seria, translation_id, token)
+                if ch_save and not ch.is_seria("kp"+id, translation_id, seria):
+                    # Записываем данные в кеш
+                    try:
+                        ch.add_seria("kp"+id, translation_id, seria, url)
+                    except KeyError:
+                        pass
+        else:
+            return abort(400)
+        straight_url = f"https:{url}{quality}.mp4" # Прямая ссылка
+        url = f"/download/{rd['serv']}/{id}/{series}-{translation_id}/{quality}-{seria}" # Ссылка на скачивание через этот сервер
+        return render_template('room.html',
+            url=url, seria=seria, series=series, id=id, id_type=id_type, data=f"{series}-{translation_id}", quality=quality, serv=rd['serv'], straight_url=straight_url,
+            start_time=rd['play_time'],
+            is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
+    except:
+        return abort(500)
+    # return {"rid": rid, "data": watch_manager.get_room_data(rid)}
+
+@app.route('/synchronize/<string:rid>/', methods=['POST'])
+def synchronize(rid):
+    data = dict(request.json)
+    rdata = watch_manager.get_room_data(rid)
+    # print("\tBef:", data, rdata, sep='\n')
+    if data['clicked']:
+        rdata['pause'] = data['pause']
+        rdata['play_time'] = data['play_time']
+        watch_manager.update_room(rid, rdata)
+    else:
+        watch_manager.room_used(rid)
+    return rdata
+    
+
+# =======================================================================
+
 
 @app.route('/help/')
 def help():

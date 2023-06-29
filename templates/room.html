@@ -18,9 +18,9 @@
       </tr>
     </table>
     <div class="container mt-5">
-      <h1>Серия {{ seria }} (<a href='https://kodikdb.com/find-player?{{ id_type }}ID={{ id }}&only_season=false'{% if is_dark %} class="dark-href"{% endif %}>Смотреть в Kodik'е</a>)</h1>
-      <video controls="controls" width="100%" autoplay>
-        <source src="{{ straight_url }}" type='video/mp4'>
+      <h1>(InWork)Серия {{ seria }} (<a href='https://kodikdb.com/find-player?{{ id_type }}ID={{ id }}&only_season=false'{% if is_dark %} class="dark-href"{% endif %}>Смотреть в Kodik'е</a>)</h1>
+      <video controls="controls" width="100%" autoplay id='vid'>
+        <source src="{{ straight_url }}#t={{ start_time }}" type='video/mp4'>
       </video>
       <p>
       {% if seria > 1 %}
@@ -36,7 +36,7 @@
       {% if seria > 0 %}
       <form method="POST" novalidate>
         <div class="mb-3">
-        <label for="choose_seria_num" class="form-label">Введите номер серии (1-{{ data[:data.find("-")] }}):</label>
+        <label for="choose_seria_num" class="form-label">(InWork)Введите номер серии (1-{{ data[:data.find("-")] }}):</label>
         <table style="position:relative; top:-15px">
           <tr>
             <td><input id="choose_seria_num" name="seria" required autocomplete=off cols="10" maxlength='80' class="{% if is_dark %}dark-{% endif %}form-control" style="width: 100px;"></td>
@@ -46,14 +46,7 @@
         </div>
       </form>
       {% endif %}
-      <p>Текущее качество видео: {{ quality }}<br>Изменить: <a href='720/'{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href='480/'{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href='360/'{% if is_dark %} class="dark-href"{% endif %}>360</a></p>
-      <p>
-        <form action='/create_room/' method="POST" novalidate>
-          <div class="mb-3">
-            <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position: relative; top:8px">Смотреть вместе</button>
-          </div>
-        </form>
-      </p>
+      <p>(InWork)Текущее качество видео: {{ quality }}<br>Изменить: <a href='720/'{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href='480/'{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href='360/'{% if is_dark %} class="dark-href"{% endif %}>360</a></p>
       <p>
         <a href='{{ url }}/'{% if is_dark %} class="dark-href"{% endif %}>Скачать эту серию</a>
         (<a href='{{ straight_url }}/'{% if is_dark %} class="dark-href"{% endif %}>Прямая ссылка</a>)
@@ -62,5 +55,6 @@
     </div>
     <!-- Скрипты Bootstrap 5 -->
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/room_funcs.js') }}"></script>
   </body>
 </html>
