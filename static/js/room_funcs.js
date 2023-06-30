@@ -1,8 +1,12 @@
 const video = document.querySelector("video");
+const copy_link_btn = document.querySelector('.copy_link');
+const create_qr_btn = document.querySelector('.create_qr');
 
 var socket = io();
 let hrf = window.location.href;
 let rid = hrf.slice(hrf.slice(0, -5).lastIndexOf('/')+1, -1);
+
+let qrCode;
 
 video.onpause = function() {
     socket.emit("broadcast", {data: {'status': 'paused', 'time': video.currentTime}, rid: rid})
@@ -34,3 +38,40 @@ socket.on('message', (event) => {
         window.location.reload();
     }
 })
+
+copy_link_btn.addEventListener("click", () => {
+    navigator.clipboard.writeText(hrf)
+        .then(() => {
+        if (copy_link_btn.textContent !== 'Скопировано!') {
+            const originalText = copy_link_btn.textContent;
+            copy_link_btn.textContent = 'Скопировано!';
+            setTimeout(() => {
+                copy_link_btn.textContent = originalText;
+            }, 1500);
+        }
+        })
+        .catch(err => {
+        console.log('Something went wrong', err);
+        })
+});
+
+function generateQrCode(qrContent) {
+    return new QRCode("qr_code", {
+        text: qrContent,
+        width: 256,
+        height: 256,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H,
+    });
+}
+
+create_qr_btn.addEventListener("click", function (event) {
+    if (qrCode == null) {
+        qrCode = generateQrCode(hrf);
+    } else {
+        qrCode.makeCode(hrf);
+    }
+    document.getElementById("qr_code_container").style = "background-color: white; height: 300px; width: 300px; display: flex; align-items: center;justify-content: center;"
+});
+

@@ -47,10 +47,15 @@
       </form>
       {% endif %}
       <p id="current_quality">Текущее качество видео: {{ quality }}<br>Изменить: <a href='cq-720/'{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href='cq-480/'{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href='cq-360/'{% if is_dark %} class="dark-href"{% endif %}>360</a></p>
+      <button class="copy_link btn {% if is_dark %}dark-{% endif %}btn-primary mb-3">Скопировать ссылку на комнату</button>
+      <button class="create_qr btn {% if is_dark %}dark-{% endif %}btn-primary mb-3">Создать qr</button>
+      <div id='qr_code_container'><div id='qr_code'></div></div>
       <p>Если у вас не найден плеер или не получается скачать, попробуйте сменить качество.</p>
     </div>
     <!-- Скрипты Bootstrap 5 -->
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <!-- Скрипты генерации qr кода -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Скрипты Socket -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
     <!-- Скрипт комнаты -->
