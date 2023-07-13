@@ -22,17 +22,26 @@
       <video controls="controls" width="100%" autoplay id='vid'>
         <source src="{{ straight_url }}#t={{ start_time }}" type='video/mp4'>
       </video>
-      <p id="seria_swapper">
-      {% if seria > 1 %}
-      <a href='cs-{{ seria-1 }}/'{% if is_dark %} class="dark-href"{% endif %}>Предыдущая серия</a>
-      {% endif %}
-      {% if seria > 1 and seria < series %}
-       | 
-      {% endif %}
-      {% if seria < series %}
-      <a href='cs-{{ seria+1 }}/'{% if is_dark %} class="dark-href"{% endif %}>Следующая серия</a>
-      {% endif %}
-      </p>
+      <table width="100%">
+        <tr>
+          <td>
+            <table>
+              {% if seria > 1 %}
+                <td><a href='cs-{{ seria-1 }}/'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">Предыдущая серия</button></a></td>
+              {% endif %}
+              {% if seria < series %}
+                <td><a href='cs-{{ seria+1 }}'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">Следующая серия</button></a></td>
+              {% endif %}
+            </table>
+          </td>
+          <td>
+            <table align='right'>
+              <td><button id="skip_left" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_left();">Назад на 1:30</button></td>
+              <td><button id="skip_right" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_right();">Вперед на 1:30</button></td>
+            </table>
+          </td>
+        </tr>
+      </table>
       {% if seria > 0 %}
       <form method="POST" novalidate>
         <div class="mb-3">
@@ -50,7 +59,10 @@
       <button class="copy_link btn {% if is_dark %}dark-{% endif %}btn-primary mb-3">Скопировать ссылку на комнату</button>
       <button class="create_qr btn {% if is_dark %}dark-{% endif %}btn-primary mb-3">Создать qr</button>
       <div id='qr_code_container'><div id='qr_code'></div></div>
-      <p>Если у вас не найден плеер или не получается скачать, попробуйте сменить качество.</p>
+      <p>
+        Если у вас не найден плеер, попробуйте сменить качество.<br>
+        Для синхронизации видео с другими участниками комнаты, поставьте на паузу и/или снимите с неё.
+      </p>
     </div>
     <!-- Скрипты Bootstrap 5 -->
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>

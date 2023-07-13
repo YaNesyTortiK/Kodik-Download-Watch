@@ -22,17 +22,26 @@
       <video controls="controls" width="100%" autoplay>
         <source src="{{ straight_url }}" type='video/mp4'>
       </video>
-      <p>
-      {% if seria > 1 %}
-      <a href='/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria-1 }}/{{ quality }}/'{% if is_dark %} class="dark-href"{% endif %}>Предыдущая серия</a>
-      {% endif %}
-      {% if seria > 1 and seria < series %}
-       | 
-      {% endif %}
-      {% if seria < series %}
-      <a href='/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria+1 }}/{{ quality }}/'{% if is_dark %} class="dark-href"{% endif %}>Следующая серия</a>
-      {% endif %}
-      </p>
+      <table width="100%">
+        <tr>
+          <td>
+            <table>
+              {% if seria > 1 %}
+                <td><a href='/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria-1 }}/{{ quality }}/'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">Предыдущая серия</button></a></td>
+              {% endif %}
+              {% if seria < series %}
+                <td><a href='/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria+1 }}/{{ quality }}/'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">Следующая серия</button></a></td>
+              {% endif %}
+            </table>
+          </td>
+          <td>
+            <table align='right'>
+              <td><button id="skip_left" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_left();">Назад на 1:30</button></td>
+              <td><button id="skip_right" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_right();">Вперед на 1:30</button></td>
+            </table>
+          </td>
+        </tr>
+      </table>
       {% if seria > 0 %}
       <form method="POST" novalidate>
         <div class="mb-3">
@@ -64,5 +73,23 @@
     </div>
     <!-- Скрипты Bootstrap 5 -->
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+
+    <script>
+      const video = document.querySelector("video");
+      function skip_left() {
+        if (video.currentTime - 90 > 0) {
+          video.currentTime = video.currentTime-90
+        } else {
+          video.currentTime = 0
+        }
+      };
+      function skip_right() {
+        if (video.currentTime + 90 < video.duration) {
+          video.currentTime = video.currentTime+90
+        } else {
+          video.currentTime = video.duration
+        }
+      };
+    </script>
   </body>
 </html>

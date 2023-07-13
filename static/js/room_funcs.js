@@ -34,6 +34,9 @@ socket.on('message', (event) => {
         video.currentTime = event.data.time;
         video.pause();
     }
+    if (event.data.status == 'skipping') {
+        video.currentTime = event.data.time;
+    }
     if (event.data.status == 'update_page') {
         window.location.reload();
     }
@@ -75,3 +78,19 @@ create_qr_btn.addEventListener("click", function (event) {
     document.getElementById("qr_code_container").style = "background-color: white; height: 300px; width: 300px; display: flex; align-items: center;justify-content: center;"
 });
 
+function skip_left() {
+    if (video.currentTime - 90 > 0) {
+        video.currentTime = video.currentTime-90
+    } else {
+        video.currentTime = 0
+    }
+    socket.emit("broadcast", {data: {'status': 'skipping', 'time': video.currentTime}, rid: rid})
+};
+function skip_right() {
+    if (video.currentTime + 90 < video.duration) {
+        video.currentTime = video.currentTime+90
+    } else {
+        video.currentTime = video.duration
+    }
+    socket.emit("broadcast", {data: {'status': 'skipping', 'time': video.currentTime}, rid: rid})
+};
