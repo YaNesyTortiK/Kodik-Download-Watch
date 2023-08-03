@@ -79,16 +79,16 @@ create_qr_btn.addEventListener("click", function (event) {
 });
 
 function skip_left() {
-    if (video.currentTime - 90 > 0) {
-        video.currentTime = video.currentTime-90
+    if (video.currentTime - 80 > 0) {
+        video.currentTime = video.currentTime-80
     } else {
         video.currentTime = 0
     }
     socket.emit("broadcast", {data: {'status': 'skipping', 'time': video.currentTime}, rid: rid})
 };
 function skip_right() {
-    if (video.currentTime + 90 < video.duration) {
-        video.currentTime = video.currentTime+90
+    if (video.currentTime + 80 < video.duration) {
+        video.currentTime = video.currentTime+80
     } else {
         video.currentTime = video.duration
     }

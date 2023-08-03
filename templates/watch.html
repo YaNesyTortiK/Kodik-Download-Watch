@@ -36,8 +36,8 @@
           </td>
           <td>
             <table align='right'>
-              <td><button id="skip_left" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_left();">Назад на 1:30</button></td>
-              <td><button id="skip_right" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_right();">Вперед на 1:30</button></td>
+              <td><button id="skip_left" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_left();">Назад на 1:20</button></td>
+              <td><button id="skip_right" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_right();">Вперед на 1:20</button></td>
             </table>
           </td>
         </tr>
@@ -77,15 +77,15 @@
     <script>
       const video = document.querySelector("video");
       function skip_left() {
-        if (video.currentTime - 90 > 0) {
-          video.currentTime = video.currentTime-90
+        if (video.currentTime - 80 > 0) {
+          video.currentTime = video.currentTime-80
         } else {
           video.currentTime = 0
         }
       };
       function skip_right() {
-        if (video.currentTime + 90 < video.duration) {
-          video.currentTime = video.currentTime+90
+        if (video.currentTime + 80 < video.duration) {
+          video.currentTime = video.currentTime+80
         } else {
           video.currentTime = video.duration
         }
