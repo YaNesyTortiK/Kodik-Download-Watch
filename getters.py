@@ -190,14 +190,20 @@ def get_search_data(search_query: str, token: str, ch: Cache = None):
                 ch_ser_data = ch.get_data_by_id("sh"+item['shikimori_id'])
                 if time() - ch_ser_data['last_updated'] > ch.life_time:
                     # Обновление данных если они устарели (CACHE_LIFE_TIME был превышен)
-                    ser_data = get_shiki_data(item['shikimori_id'])
+                    try:
+                        ser_data = get_shiki_data(item['shikimori_id'])
+                    except RuntimeWarning:
+                        continue
                     ch.add_id("sh"+item['shikimori_id'],
                         ser_data['title'], ser_data['image'], ser_data['score'], ser_data['status'], ser_data['date'], ser_data['type'])
                 else:
                     ser_data = ch_ser_data
             else:
                 # Если данных в кеше нет или кеш не используется
-                ser_data = get_shiki_data(item['shikimori_id'])
+                try:
+                    ser_data = get_shiki_data(item['shikimori_id'])
+                except RuntimeWarning:
+                    continue
                 if ch != None:
                     ch.add_id("sh"+item['shikimori_id'],
                         ser_data['title'], ser_data['image'], ser_data['score'], ser_data['status'], ser_data['date'], ser_data['type'])
@@ -235,19 +241,33 @@ def get_search_data(search_query: str, token: str, ch: Cache = None):
     others = sorted(others, key=lambda x: x['date'], reverse=True)
     return (items, others)
 
-def get_shiki_data(id: str):
+def get_shiki_data(id: str, retries: int = 3, alph: str = 'zzyxwvutsrqponmlkjihgfedcba'):
     headers = {
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 OPR/93.0.0.0 (Edition Yx GX)",
     }
+    if retries <= 0:
+        print(f"Max retries getting data exceeded. Id: {id}")
+        raise RuntimeWarning(f"Max retries getting data exceeded. Id: {id}")
     url = "https://shikimori.me/animes/"+id
     data = get_url_data(url, headers)
+    if data[data.find('<title>')+7:data.find('</title>')] == '502':
+        for i, ch in enumerate(alph):
+            if i+1 == len(alph):
+                raise RuntimeWarning("Can't generate url")
+            if url[url.rfind('/')+1] == ch:
+                url = url[:url.rfind('/')+1]+alph[i+1]+url[url.rfind('/')+2:]
+            else:
+                url = url[:url.rfind('/')+1]+alph[i+1]+url[url.rfind('/')+1:]
+            data = get_url_data(url, headers)
+            if data[data.find('<title>')+7:data.find('</title>')] != '502':
+                break
     soup = Soup(data, 'lxml')
     try:
         if soup.find('img', {'class': 'image'}).get_attribute_list('src')[0] == "/images/static/page_moved.jpg":
             # Проверка на перемещение страницы
             new_id = soup.find("a").get_attribute_list('href')[0]
             new_id = new_id[new_id.rfind('/'):]
-            return get_shiki_data(new_id)
+            return get_shiki_data(new_id, retries=retries-1)
         else:
             # Страница не перемещена
             raise FileExistsError
@@ -269,7 +289,7 @@ def get_shiki_data(id: str):
         except:
             # Сервер не допукает слишком частое обращение
             sleep(0.5)
-            return get_shiki_data(id)
+            return get_shiki_data(id, retries=retries-1)
         else:
             title = soup.find('header', {'class': 'head'}).find('h1').text
             try:
