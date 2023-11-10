@@ -171,10 +171,11 @@ def redirect_to_download(serv, id, data, data2):
                         pass
         else:
             return abort(400)
+        translation = translations[translation_id] if translation_id in translations else "Неизвестно"
         if seria == 0:
-            return redirect(f"https:{url}{quality}.mp4:Перевод-{translations[translation_id]}:.mp4")
+            return redirect(f"https:{url}{quality}.mp4:Перевод-{translation}:.mp4")
         else:
-            return redirect(f"https:{url}{quality}.mp4:Серия-{seria}:Перевод-{translations[translation_id]}:.mp4")
+            return redirect(f"https:{url}{quality}.mp4:Серия-{seria}:Перевод-{translation}:.mp4")
     except Exception as ex:
         return abort(500, f'Exception: {ex}')
 

@@ -248,7 +248,7 @@ def get_shiki_data(id: str, retries: int = 3, alph: str = 'zzyxwvutsrqponmlkjihg
     if retries <= 0:
         print(f"Max retries getting data exceeded. Id: {id}")
         raise RuntimeWarning(f"Max retries getting data exceeded. Id: {id}")
-    url = "https://shikimori.me/animes/"+id
+    url = "https://shikimori.one/animes/"+id
     data = get_url_data(url, headers)
     if data[data.find('<title>')+7:data.find('</title>')] == '502':
         for i, ch in enumerate(alph):
