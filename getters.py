@@ -166,12 +166,19 @@ def get_download_link_with_data(video_type: str, video_hash: str, video_id: str)
         "Content-Type": "application/x-www-form-urlencoded"
     }
 
-    data = requests.post('https://kodik.info/vdu', params=params, headers=headers).json()
+    post_link = get_post_link()
+    data = requests.post(f'https://kodik.info{post_link}', params=params, headers=headers).json()
     url = convert(data['links']['360'][0]['src'])
     try:
         return b64decode(url.encode())
     except:
         return str(b64decode(url.encode()+b'==')).replace("https:", '')
+    
+def get_post_link():
+    script_url = "https://kodik.info/assets/js/app.player_single.cc7c389aac31dd6a852172d9aa2d04092fb33d6fae18eb5a9fa2756c301ce900.js"
+    data = requests.get(script_url).text
+    url = data[data.find("$.ajax")+30:data.find("cache:!1")-3]
+    return b64decode(url.encode()).decode()
 
 def get_search_data(search_query: str, token: str, ch: Cache = None):
     payload = {
