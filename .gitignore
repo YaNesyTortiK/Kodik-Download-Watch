@@ -1,5 +1,5 @@
 /venv/
 /__pycache__/
-test.py
-test.json
 cache.json
+.vscode
+test.*

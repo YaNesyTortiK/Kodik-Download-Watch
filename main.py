@@ -5,6 +5,7 @@ from getters import *
 import watch_together
 from json import load
 import config
+import os
 
 app = Flask(__name__)
 Mobility(app)
@@ -389,7 +390,12 @@ def help():
 
 @app.route('/resources/<string:path>')
 def resources(path: str):
-    return send_file(f'resources\\{path}')
+    if os.path.exists(f'resources\\{path}'): # Windows-like
+        return send_file(f'resources\\{path}')
+    elif os.path.exists(f'resources/{path}'): # Unix
+        return send_file(f'resources/{path}')
+    else:
+        return abort(404)
 
 @app.route('/favicon.ico')
 def favicon():

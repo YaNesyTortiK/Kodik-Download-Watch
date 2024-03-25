@@ -103,6 +103,8 @@ def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str
     url = json.loads(data)['link']
     data = get_url_data('https:'+url)
     soup = Soup(data, 'lxml')
+    urlParams = data[data.find('urlParams')+13:]
+    urlParams = json.loads(urlParams[:urlParams.find(';')-1])
     if translation_id != "0" and seria_num != 0:
         # Обычный сериал (1+ серий)
         container = soup.find('div', {'class': 'serial-translations-box'}).find('select')
@@ -113,10 +115,9 @@ def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str
                 media_hash = translation.get_attribute_list('data-media-hash')[0]
                 media_id = translation.get_attribute_list('data-media-id')[0]
                 break
-        url = f'https://kodik.info/serial/{media_id}/{media_hash}/720p?d=kodik.cc&d_sign=9945930febce35101e96ce0fe360f9729430271c19941e63c5208c2f342e10ed&pd=kodik.info&pd_sign=09ffe86e9e452eec302620225d9848eb722efd800e15bf707195241d9b7e4b2b&ref=&ref_sign=208d2a75f78d8afe7a1c73c2d97fd3ce07534666ab4405369f4f8705a9741144&advert_debug=true&min_age=16&first_url=false&season=1&episode={seria_num}'
+        url = f'https://kodik.info/serial/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
         data = get_url_data(url)
         soup = Soup(data, 'lxml')
-    
     elif translation_id != "0" and seria_num == 0:
         # Видео с несколькими переводами
         container = soup.find('div', {'class': 'movie-translations-box'}).find('select')
@@ -127,10 +128,9 @@ def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str
                 media_hash = translation.get_attribute_list('data-media-hash')[0]
                 media_id = translation.get_attribute_list('data-media-id')[0]
                 break
-        url = f'https://kodik.info/video/{media_id}/{media_hash}/720p?d=kodik.cc&d_sign=9945930febce35101e96ce0fe360f9729430271c19941e63c5208c2f342e10ed&pd=kodik.info&pd_sign=09ffe86e9e452eec302620225d9848eb722efd800e15bf707195241d9b7e4b2b&ref=&ref_sign=208d2a75f78d8afe7a1c73c2d97fd3ce07534666ab4405369f4f8705a9741144&advert_debug=true&min_age=16&first_url=false&season=1&episode={seria_num}'
+        url = f'https://kodik.info/video/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
         data = get_url_data(url)
         soup = Soup(data, 'lxml')
-
     
     hash_container = soup.find_all('script')[4].text
     video_type = hash_container[hash_container.find('.type = \'')+9:]
@@ -140,26 +140,24 @@ def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str
     video_id = hash_container[hash_container.find('.id = \'')+7:]
     video_id = video_id[:video_id.find('\'')]
 
-    download_url = str(get_download_link_with_data(video_type, video_hash, video_id)).replace("https://", '')
+    download_url = str(get_download_link_with_data(video_type, video_hash, video_id, urlParams)).replace("https://", '')
     download_url = download_url[2:-26] # :hls:manifest.m3u8
 
     return download_url
 
-def get_download_link_with_data(video_type: str, video_hash: str, video_id: str):
+def get_download_link_with_data(video_type: str, video_hash: str, video_id: str, urlParams: dict):
     params={
-        # Данные для теста: hash: "ea0b9eae7d187e7c7cb2ac2d09463848"  id: 1256476  type: seria
         "hash": video_hash,
         "id": video_id,
         "type": video_type,
-        "d":"kodik.info",
-        "d_sign":"6d44aaa5cb9782cd4b3817129bfe9644c54504ad6c16a0e2adf239cde4dc416d",
-        "pd":"kodik.info",
-        "pd_sign":"09ffe86e9e452eec302620225d9848eb722efd800e15bf707195241d9b7e4b2b",
-        "ref": 'https://kodik.info/',
-        "ref_sign":"8adfdc4c8d7d47d4cc38577496ab4afd6b9540e5f2a7709895b2655c752842e3",
-        "bad_user": True, # True
-        "cdn_is_working": True,
-        "info": {},
+        'd': urlParams['d'],
+        'd_sign': urlParams['d_sign'],
+        'pd': urlParams['pd'],
+        'pd_sign': urlParams['pd_sign'],
+        'ref': '',
+        'ref_sign': urlParams['ref_sign'],
+        'bad_user': 'true',
+        'cdn_is_working': 'true',
     }
 
     headers = {
@@ -167,7 +165,7 @@ def get_download_link_with_data(video_type: str, video_hash: str, video_id: str)
     }
 
     post_link = get_post_link()
-    data = requests.post(f'https://kodik.info{post_link}', params=params, headers=headers).json()
+    data = requests.post(f'https://kodik.info{post_link}', data=params, headers=headers).json()
     url = convert(data['links']['360'][0]['src'])
     try:
         return b64decode(url.encode())
@@ -326,3 +324,7 @@ def is_good_quality_image(src: str) -> bool:
         return False
     else:
         return True
+
+if __name__ == "__main__":
+    from config import KODIK_TOKEN
+    print(get_download_link('53446', 'shikimori', 1, '610', token=KODIK_TOKEN))
