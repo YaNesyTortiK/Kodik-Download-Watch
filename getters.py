@@ -93,9 +93,9 @@ def get_serial_info(id: str, id_type: str, token: str) -> dict:
             raise FileNotFoundError("NOT A VIDEO NOR A SERIAL!!!")
 
 def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str, token: str):
-    if id_type == "shikimori":
+    if id_type == "shikimori" or id_type == "sh":
         serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FshikimoriID%3D{id}&token={token}&shikimoriID={id}"
-    elif id_type == "kinopoisk":
+    elif id_type == "kinopoisk" or id_type == "kp":
         serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FkinopoiskID%3D{id}&token={token}&kinopoiskID={id}"
     else:
         raise ValueError("Неизвестный тип id")

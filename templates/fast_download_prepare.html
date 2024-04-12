@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Быстрая загрузка</title>
+    <!-- Стили Bootstrap 5 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+  </head>
+  <body {% if is_dark %}class="dark-body"{% endif %}>
+    <!-- Контент -->
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Пожалуйста подождите</h1>
+        <p class="text-center mb-4">Выполняется предзагрузка видео, скачивание начнется автоматически...</p>
+        <p class="text-center mb-4">Процесс должен занять около 20-30 секунд для 25 минутной серии и около 2-3 минут для 1.5 часового фильма. Если возникнет ошибка о превышении времени ожидания, подождите минуту и перезагрузите эту страницу.</p>
+        <div width="100%" style="text-align: center;">
+            <button class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" onclick="window.location.replace(past_url)">Вернуться назад (после того как завершится загрузка)</button>
+        </div>
+    </div>
+    <!-- Скрипты Bootstrap 5 -->
+    <script>
+        past_url = "{{ past_url }}"
+        window.location.replace('{{ url }}')
+    </script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+  </body>
+</html>

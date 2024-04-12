@@ -24,7 +24,7 @@
         <table>
           <thead>
             <tr>
-              <th style="text-align: center; vertical-align: middle;" width=50px>№</th><th style="text-align: center; vertical-align: middle;" width=150px>Качество</th><th style="text-align: center; vertical-align: middle;">Смотреть онлайн</th>
+              <th style="text-align: center; vertical-align: middle;" width=50px>№</th><th style="text-align: center; vertical-align: middle;" width=150px>Быстрая загрузка</th><th style="text-align: center; vertical-align: middle;" width=150px>Стандартная загрузка</th><th style="text-align: center; vertical-align: middle;">Смотреть онлайн</th>
             </tr>
           </thead>
           <tbody>
@@ -34,7 +34,14 @@
                   <font size=4>{{ loop.index }}</font>
                 </td>
                 <td align="center">
-                  <font size=4><a href="720-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href="480-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href="360-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>360</a></font>
+                  <font size=4>
+                    <a href="fast-720-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href="fast-480-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href="fast-360-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>360</a>
+                  </font>
+                </td>
+                <td align="center">
+                  <font size=4>
+                    <a href="old-720-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href="old-480-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href="old-360-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>360</a>
+                  </font>
                 </td>
                 <td align="center">
                   <font size=4><a href='watch-{{ loop.index }}/'{% if is_dark %} class="dark-href"{% endif %}>Смотреть онлайн</a></font>
@@ -46,7 +53,9 @@
           </tbody>
         </table>
       {% else %}
-        <p><a href="720-0/"{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href="480-0/"{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href="360-0/"{% if is_dark %} class="dark-href"{% endif %}>360</a> | <a href='watch-0/'{% if is_dark %} class="dark-href"{% endif %}>Смотреть онлайн</a></p>
+        <p>Быстрая загрузка: <a href="fast-720-0/"{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href="fast-480-0/"{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href="fast-360-0/"{% if is_dark %} class="dark-href"{% endif %}>360</a></p>
+        <p>Стандартная загрузка: <a href="old-720-0/"{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href="old-480-0/"{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href="old-360-0/"{% if is_dark %} class="dark-href"{% endif %}>360</a></p>
+        <a href='watch-0/'{% if is_dark %} class="dark-href"{% endif %}>Смотреть онлайн</a>
       {% endif %}
     </div>
     <!-- Скрипты Bootstrap 5 -->

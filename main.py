@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, abort, session, sen
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 from flask_mobility import Mobility
 from getters import *
+from fast_download import clear_tmp, fast_download, get_path
 import watch_together
 from json import load
 import config
@@ -25,6 +26,9 @@ ch_save = config.SAVE_DATA
 ch_use = config.USE_SAVED_DATA
 
 watch_manager = watch_together.Manager(config.REMOVE_TIME)
+
+# Очистка tmp
+clear_tmp()
 
 @app.route('/')
 def index():
@@ -134,13 +138,12 @@ def download_choose_seria(serv, id, data):
     series = int(data[0])
     return render_template('download.html', series=series, is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
 
-@app.route('/download/<string:serv>/<string:id>/<string:data>/<string:data2>/')
-def redirect_to_download(serv, id, data, data2):
+@app.route('/download/<string:serv>/<string:id>/<string:data>/<string:download_type>-<string:quality>-<int:seria>/')
+def redirect_to_download(serv, id, data, download_type, quality, seria):
     data = data.split('-')
     translation_id = str(data[1])
-    data2 = data2.split('-')
-    quality = data2[0]
-    seria = int(data2[1])
+    if download_type == 'fast':
+        return redirect(f'/fast_download/{serv}-{id}-{seria}-{translation_id}-{quality}/')
     try:
         if serv == "sh":
             if ch_use and ch.is_seria("sh"+id, translation_id, seria):
@@ -361,7 +364,27 @@ def change_room_quality(rid, quality):
     watch_manager.room_used(rid)
     socketio.send({"data": {"status": 'update_page', 'time': rdata['play_time']}}, to=rid)
     return redirect(f"/room/{rid}/")
-    
+
+@app.route('/fast_download_act/<string:id_type>-<string:id>-<int:seria_num>-<string:translation_id>-<string:quality>/')
+def fast_download_work(id_type: str, id: str, seria_num: int, translation_id: str, quality: str):
+    from fast_download import fast_download, get_path
+    translation = translations[translation_id] if translation_id in translations else "Неизвестно"
+    fname = f'Перевод-{translation}-{quality}p' if seria_num == 0 else f'Серия-{seria_num}-Перевод-{translation}-{quality}p'
+    try:
+        hsh = fast_download(id, id_type, seria_num, translation_id, quality, config.KODIK_TOKEN,
+                            filename=fname)
+    except ModuleNotFoundError:
+        return abort(500, 'Внимание, на сервере не установлен ffmpeg или программа не может получить к нему доступ. Ffmpeg обязателен для использования быстрой загрузки. (Стандартная загрузка работает без ffmpeg)')
+    except FileNotFoundError:
+        return abort(400, 'Видеофайл не найден, попробуйте сменить качество')
+    return send_file(get_path(hsh), as_attachment=True)
+
+@app.route('/fast_download/<string:id_type>-<string:id>-<int:seria_num>-<string:translation_id>-<string:quality>/')
+def fast_download_prepare(id_type: str, id: str, seria_num: int, translation_id: str, quality: str):
+    return render_template('fast_download_prepare.html', 
+                           url=f'/fast_download_act/{id_type}-{id}-{seria_num}-{translation_id}-{quality}/',
+                           past_url=request.referrer if request.referrer else f'/download/{id_type}/{id}/',
+                           is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
 
 # =======================================================================
 # Sockets ====================================
