@@ -132,6 +132,8 @@ def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str
         data = get_url_data(url)
         soup = Soup(data, 'lxml')
     
+    script_url = soup.find_all('script')[1].get_attribute_list('src')[0]
+
     hash_container = soup.find_all('script')[4].text
     video_type = hash_container[hash_container.find('.type = \'')+9:]
     video_type = video_type[:video_type.find('\'')]
@@ -140,12 +142,12 @@ def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str
     video_id = hash_container[hash_container.find('.id = \'')+7:]
     video_id = video_id[:video_id.find('\'')]
 
-    download_url = str(get_download_link_with_data(video_type, video_hash, video_id, urlParams)).replace("https://", '')
+    download_url = str(get_download_link_with_data(video_type, video_hash, video_id, urlParams, script_url)).replace("https://", '')
     download_url = download_url[2:-26] # :hls:manifest.m3u8
 
     return download_url
 
-def get_download_link_with_data(video_type: str, video_hash: str, video_id: str, urlParams: dict):
+def get_download_link_with_data(video_type: str, video_hash: str, video_id: str, urlParams: dict, script_url: str):
     params={
         "hash": video_hash,
         "id": video_id,
@@ -164,7 +166,7 @@ def get_download_link_with_data(video_type: str, video_hash: str, video_id: str,
         "Content-Type": "application/x-www-form-urlencoded"
     }
 
-    post_link = get_post_link()
+    post_link = get_post_link(script_url)
     data = requests.post(f'https://kodik.info{post_link}', data=params, headers=headers).json()
     url = convert(data['links']['360'][0]['src'])
     try:
@@ -172,9 +174,8 @@ def get_download_link_with_data(video_type: str, video_hash: str, video_id: str,
     except:
         return str(b64decode(url.encode()+b'==')).replace("https:", '')
     
-def get_post_link():
-    script_url = "https://kodik.info/assets/js/app.player_single.cc7c389aac31dd6a852172d9aa2d04092fb33d6fae18eb5a9fa2756c301ce900.js"
-    data = requests.get(script_url).text
+def get_post_link(script_url):
+    data = requests.get('https://kodik.info'+script_url).text
     url = data[data.find("$.ajax")+30:data.find("cache:!1")-3]
     return b64decode(url.encode()).decode()
 

@@ -92,15 +92,16 @@ def check_ffmpeg():
     Raises ModuleNotFound error if ffmpeg isn't installed or can't be used by subprocess
     """
     try:
-        if subprocess.call('ffmpeg -version', stdout=subprocess.DEVNULL) != 0:
-            raise ModuleNotFoundError('Ffmpeg is required to use fast download.')
+        subprocess.call('ffmpeg', stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except:
         raise ModuleNotFoundError('Ffmpeg is required to use fast download.')
     
 def clear_tmp():
     """
-    Clears tmp direcory. Use on the start of application.
+    Clears tmp direcory (Creates if not found). Use on the start of application.
     """
+    if not os.path.exists('tmp'):
+        os.mkdir('tmp')
     for x in os.listdir('tmp'):
         for h in os.listdir(f'tmp/{x}'):
             os.remove(f'tmp/{x}/{h}')
