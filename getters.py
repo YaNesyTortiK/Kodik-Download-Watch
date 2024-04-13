@@ -1,5 +1,4 @@
 import requests
-import lxml
 import json
 from bs4 import BeautifulSoup as Soup
 from base64 import b64decode
@@ -7,6 +6,8 @@ from time import sleep, time
 from cache import Cache
 import config
 
+if config.USE_LXML:
+    import lxml
 
 def convert_char(char: str):
     low = char.islower()
@@ -74,7 +75,10 @@ def get_serial_info(id: str, id_type: str, token: str) -> dict:
         url = url['link']
         url = "https:"+url
         data = get_url_data(url)
-        soup = Soup(data, 'lxml')
+        if config.USE_LXML:
+            soup = Soup(data, 'lxml')
+        else:
+            soup = Soup(data)
         if is_serial(url):
             series_count = len(soup.find("div", {"class": "serial-series-box"}).find("select").find_all("option"))
             try:
@@ -102,7 +106,10 @@ def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str
     data = get_url_data(serv)
     url = json.loads(data)['link']
     data = get_url_data('https:'+url)
-    soup = Soup(data, 'lxml')
+    if config.USE_LXML:
+        soup = Soup(data, 'lxml')
+    else:
+        soup = Soup(data)
     urlParams = data[data.find('urlParams')+13:]
     urlParams = json.loads(urlParams[:urlParams.find(';')-1])
     if translation_id != "0" and seria_num != 0:
@@ -117,7 +124,10 @@ def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str
                 break
         url = f'https://kodik.info/serial/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
         data = get_url_data(url)
-        soup = Soup(data, 'lxml')
+        if config.USE_LXML:
+            soup = Soup(data, 'lxml')
+        else:
+            soup = Soup(data)
     elif translation_id != "0" and seria_num == 0:
         # Видео с несколькими переводами
         container = soup.find('div', {'class': 'movie-translations-box'}).find('select')
@@ -130,7 +140,10 @@ def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str
                 break
         url = f'https://kodik.info/video/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
         data = get_url_data(url)
-        soup = Soup(data, 'lxml')
+        if config.USE_LXML:
+            soup = Soup(data, 'lxml')
+        else:
+            soup = Soup(data)
     
     script_url = soup.find_all('script')[1].get_attribute_list('src')[0]
 
@@ -268,7 +281,10 @@ def get_shiki_data(id: str, retries: int = 3, alph: str = 'zzyxwvutsrqponmlkjihg
             data = get_url_data(url, headers)
             if data[data.find('<title>')+7:data.find('</title>')] != '502':
                 break
-    soup = Soup(data, 'lxml')
+    if config.USE_LXML:
+        soup = Soup(data, 'lxml')
+    else:
+        soup = Soup(data)
     try:
         if soup.find('img', {'class': 'image'}).get_attribute_list('src')[0] == "/images/static/page_moved.jpg":
             # Проверка на перемещение страницы
