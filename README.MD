@@ -13,14 +13,27 @@
 
 1. Склонируйте репозиторий
 2. Создайте и активируйте виртуальное окружение
+Windows:
 ```commandline
 python -m venv venv
 venv/Scripts/activate
 ```  
+Linux:
+```commandline
+python3 -m venv venv
+source venv/bin/activate
+```  
 3. Установите зависимости
+Windows:
 ```commandline
 pip install -r requirements.txt
 ```
+Linux:
+```commandline
+pip3 install -r requirements.txt
+```
+Для работы некоторых функции может потребоваться установить ffmpeg. (необязательно)
+
 4. Настройте конфигурацию программы в файле config.py
 * Измените APP_SECRET_KEY
 * Выберите, будете ли вы кешировать данные из поиска. (Ускоряет работу программы, за счёт снижения количества запросов на сторонние сервисы, однако расходует память устройства)

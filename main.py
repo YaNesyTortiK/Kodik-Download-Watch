@@ -143,11 +143,11 @@ def redirect_to_download(serv, id, data, download_type, quality, seria):
     data = data.split('-')
     translation_id = str(data[1])
     if download_type == 'fast':
-        return redirect(f'/fast_download/{serv}-{id}-{seria}-{translation_id}-{quality}/')
+        return redirect(f'/fast_download/{serv}-{id}-{seria}-{translation_id}-{quality}-{data[0]}/')
     try:
         if serv == "sh":
             if ch_use and ch.is_seria("sh"+id, translation_id, seria):
-                # Получаем данные из кеша (если есть и используется)
+                # Получаме данные из кеша (если есть и используется)
                 url = ch.get_seria("sh"+id, translation_id, seria)
             else:
                 # Получаем данные с сервера
@@ -366,18 +366,20 @@ def change_room_quality(rid, quality):
     return redirect(f"/room/{rid}/")
 
 @app.route('/fast_download_act/<string:id_type>-<string:id>-<int:seria_num>-<string:translation_id>-<string:quality>/')
-def fast_download_work(id_type: str, id: str, seria_num: int, translation_id: str, quality: str):
+@app.route('/fast_download_act/<string:id_type>-<string:id>-<int:seria_num>-<string:translation_id>-<string:quality>-<int:max_series>/')
+def fast_download_work(id_type: str, id: str, seria_num: int, translation_id: str, quality: str, max_series: int = 12):
     from fast_download import fast_download, get_path
     translation = translations[translation_id] if translation_id in translations else "Неизвестно"
-    fname = f'Перевод-{translation}-{quality}p' if seria_num == 0 else f'Серия-{seria_num}-Перевод-{translation}-{quality}p'
+    add_zeros = len(str(max_series))
+    fname = f'Перевод-{translation}-{quality}p' if seria_num == 0 else f'Серия-{str(seria_num).zfill(add_zeros)}-Перевод-{translation}-{quality}p'
     try:
         hsh = fast_download(id, id_type, seria_num, translation_id, quality, config.KODIK_TOKEN,
                             filename=fname)
+        return send_file(get_path(hsh), as_attachment=True)
     except ModuleNotFoundError:
         return abort(500, 'Внимание, на сервере не установлен ffmpeg или программа не может получить к нему доступ. Ffmpeg обязателен для использования быстрой загрузки. (Стандартная загрузка работает без ffmpeg)')
     except FileNotFoundError:
-        return abort(400, 'Видеофайл не найден, попробуйте сменить качество')
-    return send_file(get_path(hsh), as_attachment=True)
+        return abort(404, 'Видеофайл не найден, попробуйте сменить качество')
 
 @app.route('/fast_download/<string:id_type>-<string:id>-<int:seria_num>-<string:translation_id>-<string:quality>/')
 def fast_download_prepare(id_type: str, id: str, seria_num: int, translation_id: str, quality: str):

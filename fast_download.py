@@ -7,7 +7,7 @@ import subprocess
 
 def fast_download(id: str, id_type: str, seria_num: int, translation_id: str, quality: str, token: str, filename: str = 'result') -> str:
     """
-    Эта функция обеспечивает быструб загрузку засчет параллельной загрузки нескольких фрагментов.
+    Эта функция обеспечивает быструю загрузку засчет параллельной загрузки нескольких фрагментов.
     :id: Id сериала на Шикимори/Кинопоиске
     :id_type: тип id 'shikimori' или 'kinopoisk' ('sh' или 'kp')
     :seria_num: номер серии
@@ -18,6 +18,8 @@ def fast_download(id: str, id_type: str, seria_num: int, translation_id: str, qu
     """
     check_ffmpeg() # Проверка на досутпность ffmpeg из модуля subprocess
     hsh = md5(str(id+id_type+translation_id+str(seria_num)+quality).encode('utf-8')).hexdigest()+"~"
+    if not os.path.exists('tmp/'):
+        os.mkdir('tmp')
     try:
         os.mkdir(f'tmp/{hsh}')
     except FileExistsError:
@@ -38,7 +40,7 @@ def fast_download(id: str, id_type: str, seria_num: int, translation_id: str, qu
         x.start()
     for x in threads:
         x.join()
-    combine_segments('tmp/'+hsh+'/', segments_count=len(segments), name=filename)
+    combine_segments('tmp/'+hsh+'/', segments_count=len(segments), name=filename.replace(' ', '-'))
     return hsh
 
 def get_segments(manifest: str, original_link: str) -> list[str]:
@@ -58,18 +60,15 @@ def download_segment(link: str, path: str):
     with open(path, 'wb') as f:
         f.write(res.content)
 
-def combine_segments(directory: str, segments_count: int, name: str = 'result'):
-    if segments_count <= 500: # Ограничение на длинну команды
-        subprocess.call(f'ffmpeg -y -i "concat:{"|".join(sorted([directory+x for x in os.listdir(directory) if x[x.rfind(".")+1:] == "ts"], key=lambda x: int(x[x.rfind("~")+2:-3])))}" -c copy {directory}{name}.mp4')
-    else:
-        files = list(x for x in os.listdir(directory) if x[x.rfind('.')+1:] == 'ts')
-        r = ''
-        for file in sorted(files, key=lambda x: int(x[:-3])):
-            if file[file.rfind('.')+1:] == 'ts':
-                r += "file '"+file+"'\n"
-        with open(directory+'files.txt', 'w') as f:
-            f.write(r)
-        subprocess.call(f'ffmpeg -y -f concat -safe 0 -i {directory}files.txt -c copy {directory}{name}.mp4', stderr=subprocess.DEVNULL)
+def combine_segments(directory: str, segments_count: int, name: str = 'result', hwaccel: str|None = 'cuda'):
+    files = list(x for x in os.listdir(directory) if x[x.rfind('.')+1:] == 'ts')
+    r = ''
+    for file in sorted(files, key=lambda x: int(x[:-3])):
+        if file[file.rfind('.')+1:] == 'ts':
+            r += "file '"+file+"'\n"
+    with open(directory+'files.txt', 'w') as f:
+        f.write(r)
+    subprocess.call(f'ffmpeg -y{" -hwaccel "+hwaccel if not hwaccel is None else '' } -f concat -safe 0 -i {directory}files.txt -c copy {directory}{name}.mp4', stderr=subprocess.DEVNULL)
 
 def get_path(hsh: str) -> str:
     if os.path.exists(f'tmp\\{hsh}\\'):

@@ -1,6 +1,7 @@
 /venv/
-/__pycache__/
+*/__pycache__/
 cache.json
 .vscode
 test.*
 tmp/*
+__pycache__/

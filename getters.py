@@ -341,7 +341,3 @@ def is_good_quality_image(src: str) -> bool:
         return False
     else:
         return True
-
-if __name__ == "__main__":
-    from config import KODIK_TOKEN
-    print(get_download_link('53446', 'shikimori', 1, '610', token=KODIK_TOKEN))
