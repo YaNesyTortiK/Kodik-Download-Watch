@@ -9,6 +9,8 @@
 * BeautifulSoup4
 * Jinja2
 
+В качестве парсеров библиотека [anime_parser_ru](https://github.com/YaNesyTortiK/AnimeParsers) (Самописная, чтобы было проще фиксить парсеры)
+
 ## Как запустить
 
 1. Склонируйте репозиторий

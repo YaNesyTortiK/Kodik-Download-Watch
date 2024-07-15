@@ -29,6 +29,8 @@ def fast_download(id: str, id_type: str, seria_num: int, translation_id: str, qu
             for h in os.listdir(f'tmp/{hsh}'): # Очищаем кеш
                 os.remove(f'tmp/{hsh}/{h}')
     
+    if id_type == 'sh': id_type = 'shikimori'
+    elif id_type == 'kp': id_type = 'kinopoisk'
     link = get_download_link(id, id_type, seria_num, translation_id, token)
     manifest = get_url_data('https:'+link+quality+'.mp4:hls:manifest.m3u8')
     segments = get_segments(manifest, 'https:'+link)

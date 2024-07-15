@@ -1,7 +1,5 @@
+from anime_parsers_ru import KodikParser, ShikimoriParser, errors
 import requests
-import json
-from bs4 import BeautifulSoup as Soup
-from base64 import b64decode
 from time import sleep, time
 from cache import Cache
 import config
@@ -9,201 +7,25 @@ import config
 if config.USE_LXML:
     import lxml
 
-def convert_char(char: str):
-    low = char.islower()
-    alph = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    if char.upper() in alph:
-        ch = alph[(alph.index(char.upper())+13)%len(alph)]
-        if low:
-            return ch.lower()
-        else:
-            return ch
-    else:
-        return char
-
-def convert(string: str):
-    # Декодирование строки со ссылкой
-    return "".join(map(convert_char, list(string)))
+kodik_parser = KodikParser(use_lxml=config.USE_LXML)
+shiki_parser = ShikimoriParser(use_lxml=config.USE_LXML)
 
 def get_url_data(url: str, headers: dict = None, session=None):
     return requests.get(url, headers=headers).text
 
-def is_serial(iframe_url: str) -> bool:
-    return True if iframe_url[iframe_url.find(".info/")+6] == "s" else False
-
-def is_video(iframe_url: str) -> bool:
-    return True if iframe_url[iframe_url.find(".info/")+6] == "v" else False
-
-def generate_translations_dict(series_count: int, translations_div: Soup) -> dict:
-    """Returns: {'series_count': series_count, 'translations': translations}"""
-    if not isinstance(translations_div, Soup) and translations_div != None:
-        translations = []
-        for translation in translations_div:
-            a = {}
-            a['id'] = translation['value']
-            a['type'] = translation['data-translation-type']
-            if a['type'] == 'voice':
-                a['type'] = "Озвучка:  "
-            elif a['type'] == 'subtitles':
-                a['type'] = "Субтитры: "
-            a['name'] = translation.text
-            translations.append(a)
-    else:
-        translations = [{"id": "0", "type": "Неизвестно: ", "name": "Неизвестно"}]
-
-    return {'series_count': series_count, 'translations': translations}
-
-def get_link_to_serial_info(id: str, id_type: str, token: str):
-    if id_type == "shikimori":
-        serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FshikimoriID%3D{id}&token={token}&shikimoriID={id}"
-    elif id_type == "kinopoisk":
-        serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FkinopoiskID%3D{id}&token={token}&kinopoiskID={id}"
-    else:
-        raise ValueError("Неизвестный тип id")
-    return get_url_data(serv)
-
 def get_serial_info(id: str, id_type: str, token: str) -> dict:
-    """Returns dict {'series_count': int, 'translations': [{'id': 'str', 'type': 'str', 'name': 'str'}, ...]}
-    If series_count == 0, then it's a video (doesn't have series)
-    """
-    url = get_link_to_serial_info(id, id_type, token)
-    url = json.loads(url)
-    is_found = url['found']
-    if not is_found:
-        raise FileNotFoundError
-    else:
-        url = url['link']
-        url = "https:"+url
-        data = get_url_data(url)
-        if config.USE_LXML:
-            soup = Soup(data, 'lxml')
-        else:
-            soup = Soup(data)
-        if is_serial(url):
-            series_count = len(soup.find("div", {"class": "serial-series-box"}).find("select").find_all("option"))
-            try:
-                translations_div = soup.find("div", {"class": "serial-translations-box"}).find("select").find_all("option")
-            except:
-                translations_div = None
-            return generate_translations_dict(series_count, translations_div)
-        elif is_video(url):
-            series_count = 0
-            try:
-                translations_div = soup.find("div", {"class": "movie-translations-box"}).find("select").find_all("option")
-            except AttributeError:
-                translations_div = None
-            return generate_translations_dict(series_count, translations_div)
-        else:
-            raise FileNotFoundError("NOT A VIDEO NOR A SERIAL!!!")
+    return kodik_parser.get_info(id, id_type)
 
 def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str, token: str):
-    if id_type == "shikimori" or id_type == "sh":
-        serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FshikimoriID%3D{id}&token={token}&shikimoriID={id}"
-    elif id_type == "kinopoisk" or id_type == "kp":
-        serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FkinopoiskID%3D{id}&token={token}&kinopoiskID={id}"
-    else:
-        raise ValueError("Неизвестный тип id")
-    data = get_url_data(serv)
-    url = json.loads(data)['link']
-    data = get_url_data('https:'+url)
-    if config.USE_LXML:
-        soup = Soup(data, 'lxml')
-    else:
-        soup = Soup(data)
-    urlParams = data[data.find('urlParams')+13:]
-    urlParams = json.loads(urlParams[:urlParams.find(';')-1])
-    if translation_id != "0" and seria_num != 0:
-        # Обычный сериал (1+ серий)
-        container = soup.find('div', {'class': 'serial-translations-box'}).find('select')
-        media_hash = None
-        media_id = None
-        for translation in container.find_all('option'):
-            if translation.get_attribute_list('data-id')[0] == translation_id:
-                media_hash = translation.get_attribute_list('data-media-hash')[0]
-                media_id = translation.get_attribute_list('data-media-id')[0]
-                break
-        url = f'https://kodik.info/serial/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
-        data = get_url_data(url)
-        if config.USE_LXML:
-            soup = Soup(data, 'lxml')
-        else:
-            soup = Soup(data)
-    elif translation_id != "0" and seria_num == 0:
-        # Видео с несколькими переводами
-        container = soup.find('div', {'class': 'movie-translations-box'}).find('select')
-        media_hash = None
-        media_id = None
-        for translation in container.find_all('option'):
-            if translation.get_attribute_list('data-id')[0] == translation_id:
-                media_hash = translation.get_attribute_list('data-media-hash')[0]
-                media_id = translation.get_attribute_list('data-media-id')[0]
-                break
-        url = f'https://kodik.info/video/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
-        data = get_url_data(url)
-        if config.USE_LXML:
-            soup = Soup(data, 'lxml')
-        else:
-            soup = Soup(data)
-    
-    script_url = soup.find_all('script')[1].get_attribute_list('src')[0]
-
-    hash_container = soup.find_all('script')[4].text
-    video_type = hash_container[hash_container.find('.type = \'')+9:]
-    video_type = video_type[:video_type.find('\'')]
-    video_hash = hash_container[hash_container.find('.hash = \'')+9:]
-    video_hash = video_hash[:video_hash.find('\'')]
-    video_id = hash_container[hash_container.find('.id = \'')+7:]
-    video_id = video_id[:video_id.find('\'')]
-
-    download_url = str(get_download_link_with_data(video_type, video_hash, video_id, urlParams, script_url)).replace("https://", '')
-    download_url = download_url[2:-26] # :hls:manifest.m3u8
-
-    return download_url
-
-def get_download_link_with_data(video_type: str, video_hash: str, video_id: str, urlParams: dict, script_url: str):
-    params={
-        "hash": video_hash,
-        "id": video_id,
-        "type": video_type,
-        'd': urlParams['d'],
-        'd_sign': urlParams['d_sign'],
-        'pd': urlParams['pd'],
-        'pd_sign': urlParams['pd_sign'],
-        'ref': '',
-        'ref_sign': urlParams['ref_sign'],
-        'bad_user': 'true',
-        'cdn_is_working': 'true',
-    }
-
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-
-    post_link = get_post_link(script_url)
-    data = requests.post(f'https://kodik.info{post_link}', data=params, headers=headers).json()
-    url = convert(data['links']['360'][0]['src'])
-    try:
-        return b64decode(url.encode())
-    except:
-        return str(b64decode(url.encode()+b'==')).replace("https:", '')
-    
-def get_post_link(script_url):
-    data = requests.get('https://kodik.info'+script_url).text
-    url = data[data.find("$.ajax")+30:data.find("cache:!1")-3]
-    return b64decode(url.encode()).decode()
+    return kodik_parser.get_link(id, id_type, seria_num, translation_id)[0]
 
 def get_search_data(search_query: str, token: str, ch: Cache = None):
-    payload = {
-        "token": token,
-        "title": search_query
-    }
-    url = "https://kodikapi.com/search"
-    data = requests.post(url, data=payload).json()
+    search_res = kodik_parser.search(search_query, limit=50)
     items = []
     others = []
     used_ids = []
-    for item in data['results']:
-        if 'shikimori_id' in item.keys() and item['shikimori_id'] not in used_ids:
+    for item in search_res:
+        if 'shikimori_id' in item.keys() and item['shikimori_id'] != None and item['shikimori_id'] not in used_ids:
             # Проверка на наличие shikimori_id и на отсутствие его в уже добавленных тайтлах
             if ch != None and ch.is_id("sh"+item['shikimori_id']):
                 # Проверка на наличие данных в кеше
@@ -228,7 +50,7 @@ def get_search_data(search_query: str, token: str, ch: Cache = None):
                     ch.add_id("sh"+item['shikimori_id'],
                         ser_data['title'], ser_data['image'], ser_data['score'], ser_data['status'], ser_data['date'], ser_data['type'])
             dd = {
-                'image': ser_data['image'],
+                'image': ser_data['image'] if ser_data['image'] != None else config.IMAGE_NOT_FOUND,
                 'id': item['shikimori_id'],
                 'type': ser_data['type'],
                 'date': ser_data['date'],
@@ -237,7 +59,7 @@ def get_search_data(search_query: str, token: str, ch: Cache = None):
             }
             items.append(dd)
             used_ids.append(item['shikimori_id'])
-        elif "kinopoisk_id" in item.keys() and 'shikimori_id' not in item.keys() and item['kinopoisk_id'] not in used_ids:
+        elif "kinopoisk_id" in item.keys() and item['kinopoisk_id'] != None and ('shikimori_id' not in item.keys() or item['shikimori_id'] is None) and item['kinopoisk_id'] not in used_ids:
             if item['type'] == "foreign-movie":
                 ctype = "Иностранный фильм"
             elif item['type'] == "foreign-serial":
@@ -261,80 +83,40 @@ def get_search_data(search_query: str, token: str, ch: Cache = None):
     others = sorted(others, key=lambda x: x['date'], reverse=True)
     return (items, others)
 
-def get_shiki_data(id: str, retries: int = 3, alph: str = 'zzyxwvutsrqponmlkjihgfedcba'):
-    headers = {
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 OPR/93.0.0.0 (Edition Yx GX)",
-    }
+def get_shiki_data(id: str, retries: int = 3):
     if retries <= 0:
         print(f"Max retries getting data exceeded. Id: {id}")
         raise RuntimeWarning(f"Max retries getting data exceeded. Id: {id}")
-    url = "https://shikimori.one/animes/"+id
-    data = get_url_data(url, headers)
-    if data[data.find('<title>')+7:data.find('</title>')] == '502':
-        for i, ch in enumerate(alph):
-            if i+1 == len(alph):
-                raise RuntimeWarning("Can't generate url")
-            if url[url.rfind('/')+1] == ch:
-                url = url[:url.rfind('/')+1]+alph[i+1]+url[url.rfind('/')+2:]
-            else:
-                url = url[:url.rfind('/')+1]+alph[i+1]+url[url.rfind('/')+1:]
-            data = get_url_data(url, headers)
-            if data[data.find('<title>')+7:data.find('</title>')] != '502':
-                break
-    if config.USE_LXML:
-        soup = Soup(data, 'lxml')
-    else:
-        soup = Soup(data)
     try:
-        if soup.find('img', {'class': 'image'}).get_attribute_list('src')[0] == "/images/static/page_moved.jpg":
-            # Проверка на перемещение страницы
-            new_id = soup.find("a").get_attribute_list('href')[0]
-            new_id = new_id[new_id.rfind('/'):]
-            return get_shiki_data(new_id, retries=retries-1)
-        else:
-            # Страница не перемещена
-            raise FileExistsError
-    except:
-        try:
-            if soup.find("div", {'class': 'b-age_restricted'}) == None:
-                # Проверка на возрастные ограничения
-                soup.find("div", {'class': 'c-poster'}).find('picture').find('img')
-            else:
-                raise PermissionError
-        except PermissionError:
-            title = f"18+ (Shikimori id: {id})"
-            image = config.IMAGE_AGE_RESTRICTED
-            p_data = "Неизвестно"
-            dtype = "Неизвестно"
-            dstatus = "Неизвестно"
-            ddate = "Неизвестно"
-            score = "Неизвестно"
-        except:
-            # Сервер не допукает слишком частое обращение
-            sleep(0.5)
-            return get_shiki_data(id, retries=retries-1)
-        else:
-            title = soup.find('header', {'class': 'head'}).find('h1').text
-            try:
-                image = soup.find("div", {'class': 'c-poster'}).find('div').get_attribute_list('data-href')[0]
-            except:
-                try:
-                    image = soup.find("div", {'class': 'c-poster'}).find('picture').find('img').get_attribute_list('src')[0]
-                except:
-                    image = config.IMAGE_NOT_FOUND
-            p_data = soup.find('div', {'class': 'b-entry-info'}).find_all('div', {'class': 'line-container'})
-            dtype = p_data[0].find('div', {'class': 'value'}).text
-            dstatus = soup.find('div', {'class': 'b-entry-info'}).find('span', {'class': 'b-anime_status_tag'}).get_attribute_list('data-text')[0]
-            ddate = soup.find('div', {'class': 'b-entry-info'}).find('span', {'class': 'b-anime_status_tag'}).parent.text[2:].strip()
-            score = soup.find('div', {'class': 'text-score'}).find('div').text
-        return {
-            'title': title,
-            'image': image,
-            'type': dtype,
-            'date': ddate,
-            'status': dstatus,
-            'score': score
-        }
+        data = shiki_parser.anime_info(shiki_parser.link_by_id(id))
+    except errors.AgeRestricted:
+        title = f"18+ (Shikimori id: {id})"
+        image = config.IMAGE_AGE_RESTRICTED
+        dtype = "Неизвестно"
+        dstatus = "Неизвестно"
+        ddate = "Неизвестно"
+        score = "Неизвестно"
+    except errors.TooManyRequests:
+        # Сервер не допукает слишком частое обращение
+        sleep(0.5)
+        return get_shiki_data(id, retries=retries-1)
+    except errors.NoResults:
+        raise RuntimeWarning
+    else:
+        title = data['title']
+        image = data['picture']
+        dtype = data['type']
+        ddate = data['dates']
+        dstatus = data['status']
+        score = data['score']
+    return {
+        'title': title,
+        'image': image,
+        'type': dtype,
+        'date': ddate,
+        'status': dstatus,
+        'score': score
+    }
     
 def is_good_quality_image(src: str) -> bool:
     if "preview" in src or "main_alt" in src:
