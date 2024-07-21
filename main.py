@@ -114,7 +114,7 @@ def download_shiki_choose_translation(serv, id):
             """
         return render_template('info.html', 
             title=name, image=pic, score=score, translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
-            dtype=dtype, date=date, status=status,
+            dtype=dtype, date=date, status=status, related=get_related(id, 'shikimori'),
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     elif serv == "kp":
         try:

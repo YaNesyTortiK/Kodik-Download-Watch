@@ -45,6 +45,30 @@
           </tr>
         </table>
       {% endif %}
+      {% if related|length > 0 %}
+        <hr>
+        <h3 class="mb-3">Связанное</h3>
+        <div style="overflow: auto;">
+        <table><tr>
+        {% for item in related %}
+          <td style="width: 20vw; min-width: 320px;">
+            <a class="{% if is_dark %}dark-{% endif %}black-href" href="{{ item['internal_link'] }}">
+            <table>
+              <td><img src="{{ item['picture'] }}" height="200px"></td>
+              <td style="vertical-align: top;">
+                <p style="padding-left: 15px;"><font size="3">
+                  Тип: {{ item['type'] }}<br>
+                  Даты выхода: {{ item['date'] }}<br>
+                  Связь: {{ item['relation'] }}
+                  </font></p>
+              </td>
+            </table>
+            <h3 class="mb-3" style="word-wrap: normal;">{{ item['name'] }}</h3>
+            </a>
+          </td>
+        {% endfor %}
+        </tr></table></div>
+      {% endif %}
       <hr>
       <h5>Выберите перевод: (Всего {{ translations|length }})</h5>
       <table>

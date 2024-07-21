@@ -117,7 +117,29 @@ def get_shiki_data(id: str, retries: int = 3):
         'status': dstatus,
         'score': score
     }
-    
+
+def get_related(id: str, id_type: str) -> list:
+    # Поддерживается только shikimori id. Поиск связанных аниме
+    id_type = 'shikimori' if id_type == 'sh' else id_type
+    if id_type != 'shikimori':
+        raise ValueError('Функция поддерживает только shikimori id')
+    try:
+        link = shiki_parser.link_by_id(id)
+    except errors.NoResults:
+        raise FileNotFoundError(f'Данные по id {id} не найдены')
+    data = shiki_parser.additional_anime_info(link)['related']
+    res = []
+    for x in data:
+        if x['date'] is None:
+            x['date'] = 'Неизвестно'
+        if x['type'] in ['Манга', 'Ранобэ']:
+            x['internal_link'] = x['url']
+        else:
+            sid = shiki_parser.id_by_link(x['url'])
+            x['internal_link'] = f'/download/sh/{sid}/'
+        res.append(x)
+    return res
+
 def is_good_quality_image(src: str) -> bool:
     if "preview" in src or "main_alt" in src:
         return False
