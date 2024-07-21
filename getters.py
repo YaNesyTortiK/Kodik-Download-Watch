@@ -96,6 +96,7 @@ def get_shiki_data(id: str, retries: int = 3):
         dstatus = "Неизвестно"
         ddate = "Неизвестно"
         score = "Неизвестно"
+        rating = '18+'
     except errors.TooManyRequests:
         # Сервер не допукает слишком частое обращение
         sleep(0.5)
@@ -109,13 +110,15 @@ def get_shiki_data(id: str, retries: int = 3):
         ddate = data['dates']
         dstatus = data['status']
         score = data['score']
+        rating = data['rating']
     return {
         'title': title,
         'image': image,
         'type': dtype,
         'date': ddate,
         'status': dstatus,
-        'score': score
+        'score': score,
+        'rating': rating
     }
 
 def get_related(id: str, id_type: str) -> list:

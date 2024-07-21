@@ -81,6 +81,7 @@ def download_shiki_choose_translation(serv, id):
             dtype = cached['type']
             date = cached['date']
             status = cached['status']
+            rating = cached['rating']
             if is_good_quality_image(pic):
                 # Проверка что была сохранена картинка в полном качестве
                 # (При поиске по шики, выдаются картинки в урезанном качестве)
@@ -95,6 +96,7 @@ def download_shiki_choose_translation(serv, id):
                 dtype = data['type']
                 date = data['date']
                 status = data['status']
+                rating = data['rating']
             except:
                 name = 'Неизвестно'
                 pic = config.IMAGE_AGE_RESTRICTED
@@ -102,7 +104,7 @@ def download_shiki_choose_translation(serv, id):
             finally:
                 if ch_save and not ch.is_id("sh"+id):
                     # Записываем данные в кеш если их там нет
-                    ch.add_id("sh"+id, name, pic, score, data['status'] if data else "Неизвестно", data['date'] if data else "Неизвестно", data['type'] if data else "Неизвестно", )
+                    ch.add_id("sh"+id, name, pic, score, data['status'] if data else "Неизвестно", data['date'] if data else "Неизвестно", data['type'] if data else "Неизвестно", data['rating'] if data else "Неизвестно")
 
         try:
             # Получаем данные о наличии переводов от кодика
@@ -114,7 +116,7 @@ def download_shiki_choose_translation(serv, id):
             """
         return render_template('info.html', 
             title=name, image=pic, score=score, translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
-            dtype=dtype, date=date, status=status, related=get_related(id, 'shikimori'),
+            dtype=dtype, date=date, status=status, rating=rating, related=get_related(id, 'shikimori'),
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     elif serv == "kp":
         try:
