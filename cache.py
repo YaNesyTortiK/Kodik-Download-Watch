@@ -78,7 +78,7 @@ class Cache:
             self.__t = time()
             self.save_data_to_file()
     
-    def add_id(self, id: str, title: str, img_url: str, score: str, status: str, dates: str, ttype: str, rating: str):
+    def add_id(self, id: str, title: str, img_url: str, score: str, status: str, dates: str, ttype: str, rating: str = 'Неизвестно'):
         data = {
             "title": title,
             "image": img_url,
