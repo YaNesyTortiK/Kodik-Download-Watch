@@ -70,7 +70,7 @@ def combine_segments(directory: str, segments_count: int, name: str = 'result', 
             r += "file '"+file+"'\n"
     with open(directory+'files.txt', 'w') as f:
         f.write(r)
-    subprocess.call(f'ffmpeg -y{" -hwaccel "+hwaccel if not hwaccel is None else '' } -f concat -safe 0 -i {directory}files.txt -c copy {directory}{name}.mp4', stderr=subprocess.DEVNULL)
+    subprocess.call(f'ffmpeg -y{" -hwaccel " + hwaccel if not hwaccel is None else "" } -f concat -safe 0 -i {directory}files.txt -c copy {directory}{name}.mp4', stderr=subprocess.DEVNULL)
 
 def get_path(hsh: str) -> str:
     if os.path.exists(f'tmp\\{hsh}\\'):
