@@ -27,10 +27,10 @@
           <td>
             <table>
               {% if seria > 1 %}
-                <td><a href='/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria-1 }}/{{ quality }}/'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">Предыдущая серия</button></a></td>
+                <td><a id="previous_seria_a" href='/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria-1 }}/{{ quality }}/'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">Предыдущая серия</button></a></td>
               {% endif %}
               {% if seria < series %}
-                <td><a href='/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria+1 }}/{{ quality }}/'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">Следующая серия</button></a></td>
+                <td><a id="next_seria_a" href='/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria+1 }}/{{ quality }}/'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">Следующая серия</button></a></td>
               {% endif %}
             </table>
           </td>
@@ -72,10 +72,19 @@
       <p>Если у вас не найден плеер или не получается скачать, попробуйте сменить качество.</p>
     </div>
     <!-- Скрипты Bootstrap 5 -->
+    <div style="display: none" id="data-holder">
+      {
+        "cur_ser": {{seria}},
+        "max_ser": {{series}},
+        "cur_quality": {{quality}}
+      }
+    </div>
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
 
     <script>
       const video = document.querySelector("video");
+      const page_data = JSON.parse(document.getElementById('data-holder').innerText)
+      
       function skip_left() {
         if (video.currentTime - 80 > 0) {
           video.currentTime = video.currentTime-80
@@ -90,6 +99,53 @@
           video.currentTime = video.duration
         }
       };
+      document.addEventListener('keydown', function(event) {
+        if (event.key == 'f' || event.key == 'а') {
+          if (!cancelFullscreen()) {
+            launchFullScreen(video)
+          }
+        } else if (event.key == 'm' || event.key == 'ь') {
+          if (video.muted) {
+            video.muted = false
+          } else {
+            video.muted = true
+          }
+        } else if (event.key == 'd' || event.key == 'в') {
+          skip_right()
+        } else if (event.key == 'a' || event.key == 'ф') {
+          skip_left()
+        } else if (event.key == 'l' || event.key == 'д') {
+          if (page_data['cur_ser'] < page_data['max_ser']) {
+            const href_next = document.getElementById('next_seria_a').href
+            document.location.replace(href_next)
+          }
+        } else if (event.key == 'j' || event.key == 'о') {
+          if (page_data['cur_ser'] > 1) {
+            const href_next = document.getElementById('previous_seria_a').href
+            document.location.replace(href_next)
+          }
+        }
+      });
+
+      function launchFullScreen(element) {
+        if(element.requestFullScreen) {
+          element.requestFullScreen();
+        } else if(element.mozRequestFullScreen) {
+          element.mozRequestFullScreen();
+        } else if(element.webkitRequestFullScreen) {
+          element.webkitRequestFullScreen();
+        }
+      }
+
+      function cancelFullscreen() {
+        if(document.cancelFullScreen) {
+          document.cancelFullScreen();
+        } else if(document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if(document.webkitCancelFullScreen) {
+          document.webkitCancelFullScreen();
+        }
+      }
     </script>
   </body>
 </html>
