@@ -202,7 +202,8 @@ def change_watch_quality(serv, id, data, seria, old_quality = None, quality = No
 
 @app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/')
 @app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/<string:quality>/')
-def watch(serv, id, data, seria, quality = None):
+@app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/<string:quality>/<int:timing>/')
+def watch(serv, id, data, seria, quality = None, timing = 0):
     if quality == None:
         quality = "720"
     try:
@@ -244,7 +245,8 @@ def watch(serv, id, data, seria, quality = None):
         return render_template('watch.html',
             url=url, seria=seria, series=series, id=id, id_type=id_type, data="-".join(data), quality=quality, serv=serv, straight_url=straight_url,
             allow_watch_together=config.ALLOW_WATCH_TOGETER,
-            is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
+            is_dark=session['is_dark'] if "is_dark" in session.keys() else False,
+            timing=timing)
     except:
         return abort(404)
 

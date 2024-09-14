@@ -57,33 +57,57 @@
       {% endif %}
       <p>Текущее качество видео: {{ quality }}<br>Изменить: <a href='720/'{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href='480/'{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href='360/'{% if is_dark %} class="dark-href"{% endif %}>360</a></p>
       <p>
-        {% if allow_watch_together %}
-        <form action='/create_room/' method="POST" novalidate>
-          <div class="mb-3">
-            <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position: relative; top:8px">Смотреть вместе</button>
-          </div>
-        </form>
-        {% endif %}
+        <table>
+          <tr>
+            {% if allow_watch_together %}
+            <td>
+              <form action='/create_room/' method="POST" novalidate>
+                <div class="mb-3">
+                  <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position: relative; top:8px">Смотреть вместе</button>
+                </div>
+              </form>
+            </td>
+            {% endif %}
+            <td>
+              <button id="create_qr_btn" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position: relative;">Ссылка с таймингом</button>
+            </td>
+          </tr>
+        </table>
       </p>
+      <div id="timing_link_div" style="display: none; padding-bottom: 30px;">
+        <input id="link_container">
+        <div id="qr_code_container"><div id='qr_code'></div></div>
+      </div>
       <p>
         <a href='{{ url }}/'{% if is_dark %} class="dark-href"{% endif %}>Скачать эту серию</a>
         (<a href='{{ straight_url }}/'{% if is_dark %} class="dark-href"{% endif %}>Прямая ссылка</a>)
       </p>
       <p>Если у вас не найден плеер или не получается скачать, попробуйте сменить качество.</p>
     </div>
-    <!-- Скрипты Bootstrap 5 -->
+    <!-- Скрипты генерации qr кода -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Собираем данные в json подобное -->
     <div style="display: none" id="data-holder">
       {
         "cur_ser": {{seria}},
         "max_ser": {{series}},
-        "cur_quality": {{quality}}
+        "cur_quality": {{quality}},
+        "timing": {{timing}}
       }
     </div>
+    <!-- Скрипты Bootstrap 5 -->
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
 
     <script>
       const video = document.querySelector("video");
       const page_data = JSON.parse(document.getElementById('data-holder').innerText)
+      const timing_link_div = document.getElementById('timing_link_div')
+      const create_qr_btn = document.getElementById('create_qr_btn')
+      let qrCode;
+
+      if (page_data['timing'] > 0) {
+        video.currentTime = page_data['timing'];
+      }
       
       function skip_left() {
         if (video.currentTime - 80 > 0) {
@@ -146,6 +170,29 @@
           document.webkitCancelFullScreen();
         }
       }
+
+      function generateQrCode(qrContent) {
+          return new QRCode("qr_code", {
+              text: qrContent,
+              width: 256,
+              height: 256,
+              colorDark: "#000000",
+              colorLight: "#ffffff",
+              correctLevel: QRCode.CorrectLevel.H,
+          });
+      }
+
+      create_qr_btn.addEventListener("click", function (event) {
+          if (qrCode == null) {
+              qrCode = generateQrCode(document.location.toString());
+          } else {
+              qrCode.makeCode(document.location.toString());
+          }
+          timing_link_div.style.display = ''
+          document.getElementById('link_container').value = document.location
+          document.getElementById("qr_code_container").style = "background-color: white; height: 300px; width: 300px; display: flex; align-items: center;justify-content: center;"
+      });
+
     </script>
   </body>
 </html>
