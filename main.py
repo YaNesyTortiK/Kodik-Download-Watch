@@ -203,9 +203,7 @@ def change_watch_quality(serv, id, data, seria, old_quality = None, quality = No
 @app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/')
 @app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/<string:quality>/')
 @app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/<string:quality>/<int:timing>/')
-def watch(serv, id, data, seria, quality = None, timing = 0):
-    if quality == None:
-        quality = "720"
+def watch(serv, id, data, seria, quality = "720", timing = 0):
     try:
         data = data.split('-')
         series = int(data[0])

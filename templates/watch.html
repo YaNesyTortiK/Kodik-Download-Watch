@@ -92,7 +92,11 @@
         "cur_ser": {{seria}},
         "max_ser": {{series}},
         "cur_quality": {{quality}},
-        "timing": {{timing}}
+        "timing": {{timing}},
+        "serv": "{{serv}}",
+        "id": "{{id}}",
+        "data": "{{data}}",
+        "seria": "{{seria}}"
       }
     </div>
     <!-- Скрипты Bootstrap 5 -->
@@ -183,13 +187,20 @@
       }
 
       create_qr_btn.addEventListener("click", function (event) {
-          if (qrCode == null) {
-              qrCode = generateQrCode(document.location.toString());
+          const cur_dur = Math.trunc(video.currentTime)
+          let loc;
+          if (document.location.port) {
+            loc = document.location.protocol + '//' + document.location.hostname + ":" + document.location.port + '/watch/' + page_data['serv'] + '/' + page_data['id'] + '/' + page_data['data'] + '/' + page_data['seria'] + '/' + page_data['cur_quality'] + '/' + cur_dur + "/"
           } else {
-              qrCode.makeCode(document.location.toString());
+            loc = document.location.protocol + '//' + document.location.hostname + '/watch/' + page_data['serv'] + '/' + page_data['id'] + '/' + page_data['data'] + '/' + page_data['seria'] + '/' + page_data['cur_quality'] + '/' + cur_dur + "/"
+          }
+          if (qrCode == null) {
+              qrCode = generateQrCode(loc);
+          } else {
+              qrCode.makeCode(loc);
           }
           timing_link_div.style.display = ''
-          document.getElementById('link_container').value = document.location
+          document.getElementById('link_container').value = loc
           document.getElementById("qr_code_container").style = "background-color: white; height: 300px; width: 300px; display: flex; align-items: center;justify-content: center;"
       });
 
