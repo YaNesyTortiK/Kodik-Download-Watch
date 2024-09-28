@@ -109,6 +109,9 @@
       const create_qr_btn = document.getElementById('create_qr_btn')
       let qrCode;
 
+      // Авто-фокус на видео плеере
+      video.focus()
+
       if (page_data['timing'] > 0) {
         video.currentTime = page_data['timing'];
       }
