@@ -55,7 +55,7 @@
         </div>
       </form>
       {% endif %}
-      <p>Текущее качество видео: {{ quality }}<br>Изменить: <a href='720/'{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href='480/'{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href='360/'{% if is_dark %} class="dark-href"{% endif %}>360</a></p>
+      <p>Текущее качество видео: {{ quality }}<br>Изменить: <a href='q-720/'{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href='q-480/'{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href='q-360/'{% if is_dark %} class="dark-href"{% endif %}>360</a></p>
       <p>
         <table>
           <tr>
@@ -83,6 +83,7 @@
         (<a href='{{ straight_url }}/'{% if is_dark %} class="dark-href"{% endif %}>Прямая ссылка</a>)
       </p>
       <p>Если у вас не найден плеер или не получается скачать, попробуйте сменить качество.</p>
+      <button class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position: relative;" onclick="document.location.replace(`/download/${page_data['serv']}/${page_data['id']}/`)">Вернуться на страницу тайтла</button>
     </div>
     <!-- Скрипты генерации qr кода -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>

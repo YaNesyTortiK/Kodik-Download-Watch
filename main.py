@@ -196,9 +196,15 @@ def redirect_to_player(serv, id, data, num):
     else:
         return redirect(f'/watch/{serv}/{id}/{data}/{num}/')
 
-@app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/<string:old_quality>/<string:quality>/')
-def change_watch_quality(serv, id, data, seria, old_quality = None, quality = None):
-    return redirect(f"/watch/{serv}/{id}/{data}/{seria}/{quality}/")
+@app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/<string:old_quality>/q-<string:quality>/')
+@app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/<string:old_quality>/<int:timing>/q-<string:quality>/')
+def change_watch_quality(serv, id, data, seria, old_quality, quality, timing = None):
+    return redirect(f"/watch/{serv}/{id}/{data}/{seria}/{quality}/{str(timing)+'/' if timing else ''}")
+
+@app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/q-<string:quality>/')
+@app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/q-<string:quality>/<int:timing>/')
+def redirect_to_old_type_quality(serv, id, data, seria, quality, timing = 0):
+    return redirect(f'/watch/{serv}/{id}/{data}/{seria}/{quality}/{str(timing)+'/' if timing else ''}')
 
 @app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/')
 @app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/<string:quality>/')
@@ -239,7 +245,7 @@ def watch(serv, id, data, seria, quality = "720", timing = 0):
         else:
             return abort(400)
         straight_url = f"https:{url}{quality}.mp4" # Прямая ссылка
-        url = f"/download/{serv}/{id}/{'-'.join(data)}/{quality}-{seria}" # Ссылка на скачивание через этот сервер
+        url = f"/download/{serv}/{id}/{'-'.join(data)}/old-{quality}-{seria}" # Ссылка на скачивание через этот сервер
         return render_template('watch.html',
             url=url, seria=seria, series=series, id=id, id_type=id_type, data="-".join(data), quality=quality, serv=serv, straight_url=straight_url,
             allow_watch_together=config.ALLOW_WATCH_TOGETER,
