@@ -214,8 +214,14 @@ def watch(serv, id, data, seria, quality = "720", timing = 0):
         data = data.split('-')
         series = int(data[0])
         translation_id = str(data[1])
+        title = None
         if serv == "sh":
             id_type = "shikimori"
+            if ch_use:
+                try:
+                    title = ch.get_data_by_id("sh"+id)['title'] if ch.get_data_by_id("sh"+id) else None
+                except:
+                    title = None
             if ch_use and ch.is_seria("sh"+id, translation_id, seria):
                 # Получаем данные из кеша (если есть и используется)
                 url = ch.get_seria("sh"+id, translation_id, seria)
@@ -230,6 +236,11 @@ def watch(serv, id, data, seria, quality = "720", timing = 0):
                         pass
         elif serv == "kp":
             id_type = "kinopoisk"
+            if ch_use:
+                try:
+                    title = ch.get_data_by_id("kp"+id)['title'] if ch.get_data_by_id("kp"+id) else None
+                except:
+                    title = None
             if ch_use and ch.is_seria("kp"+id, translation_id, seria):
                 # Получаем данные из кеша (если есть и используется)
                 url = ch.get_seria("kp"+id, translation_id, seria)
@@ -250,7 +261,7 @@ def watch(serv, id, data, seria, quality = "720", timing = 0):
             url=url, seria=seria, series=series, id=id, id_type=id_type, data="-".join(data), quality=quality, serv=serv, straight_url=straight_url,
             allow_watch_together=config.ALLOW_WATCH_TOGETER,
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False,
-            timing=timing)
+            timing=timing, title=title)
     except:
         return abort(404)
 

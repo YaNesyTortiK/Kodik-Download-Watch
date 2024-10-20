@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Серия {{ seria }}</title>
+    <title>{% if title %}{{ title }} - {% endif %}Серия {{ seria }}</title>
     <!-- Стили Bootstrap 5 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
   </head>
@@ -18,7 +18,7 @@
       </tr>
     </table>
     <div class="container mt-5">
-      <h1>Серия {{ seria }}</h1>
+      <h1>Серия {{ seria }} / {{ series }}</h1>
       <video controls="controls" width="100%" autoplay>
         <source src="{{ straight_url }}" type='video/mp4'>
       </video>
