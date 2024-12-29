@@ -90,13 +90,34 @@ def get_shiki_data(id: str, retries: int = 3):
     try:
         data = shiki_parser.anime_info(shiki_parser.link_by_id(id))
     except errors.AgeRestricted:
-        title = f"18+ (Shikimori id: {id})"
-        image = config.IMAGE_AGE_RESTRICTED
-        dtype = "Неизвестно"
-        dstatus = "Неизвестно"
-        ddate = "Неизвестно"
-        score = "Неизвестно"
-        rating = '18+'
+        if config.ALLOW_NSFW:
+            try:
+                d = shiki_parser.deep_anime_info(id, [
+                    'russian', 'kind', 'rating', 'status', 'releasedOn { date }', 'score', 'poster { originalUrl }'
+                ])
+                title = d['russian']
+                image = d['poster']['originalUrl']
+                dtype = d['kind']
+                dstatus = d['status']
+                ddate = d['releasedOn']['date']
+                score = d['score']
+                rating = d['rating']
+            except:
+                title = f"18+ (Shikimori id: {id})"
+                image = config.IMAGE_AGE_RESTRICTED
+                dtype = "Неизвестно"
+                dstatus = "Неизвестно"
+                ddate = "Неизвестно"
+                score = "Неизвестно"
+                rating = '18+'
+        else:
+            title = f"18+ (Shikimori id: {id})"
+            image = config.IMAGE_AGE_RESTRICTED
+            dtype = "Неизвестно"
+            dstatus = "Неизвестно"
+            ddate = "Неизвестно"
+            score = "Неизвестно"
+            rating = '18+'
     except errors.TooManyRequests:
         # Сервер не допукает слишком частое обращение
         sleep(0.5)
