@@ -204,7 +204,7 @@ def change_watch_quality(serv, id, data, seria, old_quality, quality, timing = N
 @app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/q-<string:quality>/')
 @app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/q-<string:quality>/<int:timing>/')
 def redirect_to_old_type_quality(serv, id, data, seria, quality, timing = 0):
-    return redirect(f'/watch/{serv}/{id}/{data}/{seria}/{quality}/{str(timing)+'/' if timing else ''}')
+    return redirect(f"/watch/{serv}/{id}/{data}/{seria}/{quality}/{str(timing)+'/' if timing else ''}")
 
 @app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/')
 @app.route('/watch/<string:serv>/<string:id>/<string:data>/<int:seria>/<string:quality>/')
