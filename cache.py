@@ -47,8 +47,8 @@ class Cache:
         Сохраняет данные в файл
         """
         print(f"[CACHE] Data saved to \"{self._path}\"")
-        with open(self._path, 'w') as f:
-            dump(self.data, f)
+        with open(self._path, 'w', encoding='utf-8') as f:
+            dump(self.data, f, ensure_ascii=False)
 
     def get_data_by_id(self, id: str) -> dict:
         """

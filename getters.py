@@ -37,7 +37,7 @@ def get_search_data(search_query: str, token: str, ch: Cache = None):
                     except RuntimeWarning:
                         continue
                     ch.add_id("sh"+item['shikimori_id'],
-                        ser_data['title'], ser_data['image'], ser_data['score'], ser_data['status'], ser_data['date'], ser_data['year'], ser_data['type'], ser_data['description'])
+                        ser_data['title'], ser_data['image'], ser_data['score'], ser_data['status'], ser_data['date'], ser_data['year'], ser_data['type'], ser_data['rating'], ser_data['description'])
                 else:
                     ser_data = ch_ser_data
             else:
@@ -48,7 +48,7 @@ def get_search_data(search_query: str, token: str, ch: Cache = None):
                     continue
                 if ch != None:
                     ch.add_id("sh"+item['shikimori_id'],
-                        ser_data['title'], ser_data['image'], ser_data['score'], ser_data['status'], ser_data['date'], ser_data['year'], ser_data['type'], ser_data['description'])
+                        ser_data['title'], ser_data['image'], ser_data['score'], ser_data['status'], ser_data['date'], ser_data['year'], ser_data['type'], ser_data['rating'], ser_data['description'])
             dd = {
                 'image': ser_data['image'] if ser_data['image'] != None else config.IMAGE_NOT_FOUND,
                 'id': item['shikimori_id'],

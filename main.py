@@ -405,7 +405,7 @@ def fast_download_work(id_type: str, id: str, seria_num: int, translation_id: st
         else:
             fname = str(ch.get_data_by_id('sh'+id)['title'])+'-'+f'Перевод-{translation}-{quality}p'
         metadata = {
-            'title': ch.get_data_by_id('sh'+id)['title']+' - Серия: '+str(seria_num) if seria_num != 0 else ch.get_data_by_id('sh'+id)['title'],
+            'title': ch.get_data_by_id('sh'+id)['title']+' - Серия-'+str(seria_num) if seria_num != 0 else ch.get_data_by_id('sh'+id)['title'],
             'year': ch.get_data_by_id('sh'+id)['year'],
             'date': ch.get_data_by_id('sh'+id)['year'],
             'comment': ch.get_data_by_id('sh'+id)['description'],
@@ -420,6 +420,11 @@ def fast_download_work(id_type: str, id: str, seria_num: int, translation_id: st
             fname = f'{quality}p' if seria_num == 0 else f'Серия-{str(seria_num).zfill(add_zeros)}-{quality}p'
         else:
             fname = f'Перевод-{translation}-{quality}p' if seria_num == 0 else f'Серия-{str(seria_num).zfill(add_zeros)}-Перевод-{translation}-{quality}p'
+    # Чистка имени файла от запрещенных символов
+    # +=[]:*?;«,./\<>|'пробел'  /\:*?<>|
+    fname = fname.replace('\\','-').replace('/', '-').replace(':', '-').replace('*','-').replace('"', '\'') \
+        .replace('»', '\'').replace('«', '\'').replace('„', '\'').replace('“', '\'').replace('<', '[') \
+        .replace(']', ')').replace('|', '-')
     try:
         hsh = fast_download(id, id_type, seria_num, translation_id, quality, config.KODIK_TOKEN,
                             filename=fname, metadata=metadata)
@@ -430,9 +435,10 @@ def fast_download_work(id_type: str, id: str, seria_num: int, translation_id: st
         return abort(404, 'Видеофайл не найден, попробуйте сменить качество')
 
 @app.route('/fast_download/<string:id_type>-<string:id>-<int:seria_num>-<string:translation_id>-<string:quality>/')
-def fast_download_prepare(id_type: str, id: str, seria_num: int, translation_id: str, quality: str):
-    return render_template('fast_download_prepare.html', 
-                           url=f'/fast_download_act/{id_type}-{id}-{seria_num}-{translation_id}-{quality}/',
+@app.route('/fast_download/<string:id_type>-<string:id>-<int:seria_num>-<string:translation_id>-<string:quality>-<int:max_series>/')
+def fast_download_prepare(id_type: str, id: str, seria_num: int, translation_id: str, quality: str, max_series: int = 12):
+    return render_template('fast_download_prepare.html', seria_num=seria_num,
+                           url=f'/fast_download_act/{id_type}-{id}-{seria_num}-{translation_id}-{quality}-{max_series}/',
                            past_url=request.referrer if request.referrer else f'/download/{id_type}/{id}/',
                            is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
 
