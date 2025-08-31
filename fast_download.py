@@ -5,7 +5,7 @@ import os
 import threading
 import subprocess
 
-def fast_download(id: str, id_type: str, seria_num: int, translation_id: str, quality: str, token: str, filename: str = 'result') -> str:
+def fast_download(id: str, id_type: str, seria_num: int, translation_id: str, quality: str, token: str, filename: str = 'result', metadata: dict = {}) -> str:
     """
     Эта функция обеспечивает быструю загрузку засчет параллельной загрузки нескольких фрагментов.
     :id: Id сериала на Шикимори/Кинопоиске
@@ -42,7 +42,7 @@ def fast_download(id: str, id_type: str, seria_num: int, translation_id: str, qu
         x.start()
     for x in threads:
         x.join()
-    combine_segments('tmp/'+hsh+'/', segments_count=len(segments), name=filename.replace(' ', '-'))
+    combine_segments('tmp/'+hsh+'/', segments_count=len(segments), name=filename.replace(' ', '-'), metadata=metadata)
     return hsh
 
 def get_segments(manifest: str, original_link: str) -> list[str]:
@@ -62,7 +62,7 @@ def download_segment(link: str, path: str):
     with open(path, 'wb') as f:
         f.write(res.content)
 
-def combine_segments(directory: str, segments_count: int, name: str = 'result', hwaccel: str|None = 'cuda'):
+def combine_segments(directory: str, segments_count: int, name: str = 'result', metadata: dict = {}, hwaccel: str|None = 'cuda'):
     files = list(x for x in os.listdir(directory) if x[x.rfind('.')+1:] == 'ts')
     r = ''
     for file in sorted(files, key=lambda x: int(x[:-3])):
@@ -70,7 +70,8 @@ def combine_segments(directory: str, segments_count: int, name: str = 'result', 
             r += "file '"+file+"'\n"
     with open(directory+'files.txt', 'w') as f:
         f.write(r)
-    subprocess.call(f'ffmpeg -y{" -hwaccel " + hwaccel if not hwaccel is None else "" } -f concat -safe 0 -i {directory}files.txt -c copy {directory}{name}.mp4', stderr=subprocess.DEVNULL)
+    metadata_str = ''.join(f'-metadata {k}="{v}" ' for k,v in metadata.items())
+    subprocess.call(f'ffmpeg -y{" -hwaccel " + hwaccel if not hwaccel is None else "" } -f concat -safe 0 -i {directory}files.txt -c copy {metadata_str} {directory}{name}.mp4', stderr=subprocess.DEVNULL)
 
 def get_path(hsh: str) -> str:
     if os.path.exists(f'tmp\\{hsh}\\'):

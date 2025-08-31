@@ -37,7 +37,7 @@ def get_search_data(search_query: str, token: str, ch: Cache = None):
                     except RuntimeWarning:
                         continue
                     ch.add_id("sh"+item['shikimori_id'],
-                        ser_data['title'], ser_data['image'], ser_data['score'], ser_data['status'], ser_data['date'], ser_data['type'])
+                        ser_data['title'], ser_data['image'], ser_data['score'], ser_data['status'], ser_data['date'], ser_data['year'], ser_data['type'], ser_data['description'])
                 else:
                     ser_data = ch_ser_data
             else:
@@ -48,14 +48,16 @@ def get_search_data(search_query: str, token: str, ch: Cache = None):
                     continue
                 if ch != None:
                     ch.add_id("sh"+item['shikimori_id'],
-                        ser_data['title'], ser_data['image'], ser_data['score'], ser_data['status'], ser_data['date'], ser_data['type'])
+                        ser_data['title'], ser_data['image'], ser_data['score'], ser_data['status'], ser_data['date'], ser_data['year'], ser_data['type'], ser_data['description'])
             dd = {
                 'image': ser_data['image'] if ser_data['image'] != None else config.IMAGE_NOT_FOUND,
                 'id': item['shikimori_id'],
                 'type': ser_data['type'],
                 'date': ser_data['date'],
                 'title': item['title'],
-                'status': ser_data['status']
+                'status': ser_data['status'],
+                'year': ser_data['year'],
+                'description': ser_data['description']
             }
             items.append(dd)
             used_ids.append(item['shikimori_id'])
@@ -93,15 +95,17 @@ def get_shiki_data(id: str, retries: int = 3):
         if config.ALLOW_NSFW:
             try:
                 d = shiki_parser.deep_anime_info(id, [
-                    'russian', 'kind', 'rating', 'status', 'releasedOn { date }', 'score', 'poster { originalUrl }'
+                    'russian', 'kind', 'rating', 'status', 'releasedOn { year, date }', 'score', 'poster { originalUrl }', 'description'
                 ])
                 title = d['russian']
                 image = d['poster']['originalUrl']
                 dtype = d['kind']
                 dstatus = d['status']
+                dyear = d['releasedOn']['year']
                 ddate = d['releasedOn']['date']
                 score = d['score']
                 rating = d['rating']
+                description = d['description']
             except:
                 title = f"18+ (Shikimori id: {id})"
                 image = config.IMAGE_AGE_RESTRICTED
@@ -110,6 +114,8 @@ def get_shiki_data(id: str, retries: int = 3):
                 ddate = "Неизвестно"
                 score = "Неизвестно"
                 rating = '18+'
+                dyear = 1970
+                description = 'Неизвестно'
         else:
             title = f"18+ (Shikimori id: {id})"
             image = config.IMAGE_AGE_RESTRICTED
@@ -118,6 +124,8 @@ def get_shiki_data(id: str, retries: int = 3):
             ddate = "Неизвестно"
             score = "Неизвестно"
             rating = '18+'
+            dyear = 1970
+            description = 'Неизвестно'
     except errors.TooManyRequests:
         # Сервер не допукает слишком частое обращение
         sleep(0.5)
@@ -132,6 +140,8 @@ def get_shiki_data(id: str, retries: int = 3):
         dstatus = data['status']
         score = data['score']
         rating = data['rating']
+        description = data['description']
+        dyear = data['dates'][-7:-3] if data['dates'][-7:-3].isdigit() else 1970
     return {
         'title': title,
         'image': image,
@@ -139,10 +149,12 @@ def get_shiki_data(id: str, retries: int = 3):
         'date': ddate,
         'status': dstatus,
         'score': score,
-        'rating': rating
+        'rating': rating,
+        'description': description,
+        'year': dyear
     }
 
-def get_related(id: str, id_type: str) -> list:
+def get_related(id: str, id_type: str, sequel_first: bool = False) -> list:
     # Поддерживается только shikimori id. Поиск связанных аниме
     id_type = 'shikimori' if id_type == 'sh' else id_type
     if id_type != 'shikimori':
@@ -162,7 +174,10 @@ def get_related(id: str, id_type: str) -> list:
             sid = shiki_parser.id_by_link(x['url'])
             x['internal_link'] = f'/download/sh/{sid}/'
         res.append(x)
-    return res
+    if sequel_first:
+        return sorted(res, key=lambda x: 0 if x["relation"] == 'Продолжение' else 1)
+    else:
+        return res
 
 def is_good_quality_image(src: str) -> bool:
     if "preview" in src or "main_alt" in src:

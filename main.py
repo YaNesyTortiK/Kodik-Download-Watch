@@ -65,7 +65,7 @@ def search_page(db, query):
         except:
             return render_template('search.html', is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     else:
-        # Другие базы не поддерживаются (возможно в будующем будут)
+        # Другие базы не поддерживаются (возможно в будущем будут)
         return abort(400)
 
 @app.route('/download/<string:serv>/<string:id>/')
@@ -82,6 +82,8 @@ def download_shiki_choose_translation(serv, id):
             date = cached['date']
             status = cached['status']
             rating = cached['rating']
+            year = cached['year']
+            description = cached['description']
             if is_good_quality_image(pic):
                 # Проверка что была сохранена картинка в полном качестве
                 # (При поиске по шики, выдаются картинки в урезанном качестве)
@@ -97,14 +99,17 @@ def download_shiki_choose_translation(serv, id):
                 date = data['date']
                 status = data['status']
                 rating = data['rating']
+                year = data['year']
+                description = data['description']
             except:
                 name = 'Неизвестно'
                 pic = config.IMAGE_AGE_RESTRICTED
                 score = 'Неизвестно'
+                data = False
             finally:
                 if ch_save and not ch.is_id("sh"+id):
                     # Записываем данные в кеш если их там нет
-                    ch.add_id("sh"+id, name, pic, score, data['status'] if data else "Неизвестно", data['date'] if data else "Неизвестно", data['type'] if data else "Неизвестно", data['rating'] if data else "Неизвестно")
+                    ch.add_id("sh"+id, name, pic, score, data['status'] if data else "Неизвестно", data['date'] if data else "Неизвестно", data['year'] if data else 1970, data['type'] if data else "Неизвестно", data['rating'] if data else "Неизвестно", data['description'] if data else '')
 
         try:
             # Получаем данные о наличии переводов от кодика
@@ -115,12 +120,12 @@ def download_shiki_choose_translation(serv, id):
             {f'<p>Exception type: {ex}</p>' if config.DEBUG else ''}
             """
         try:
-            related = get_related(id, 'shikimori')
+            related = get_related(id, 'shikimori', sequel_first=True)
         except:
             related = []
         return render_template('info.html', 
             title=name, image=pic, score=score, translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
-            dtype=dtype, date=date, status=status, rating=rating, related=related,
+            dtype=dtype, date=date, status=status, rating=rating, related=related, description=description,
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     elif serv == "kp":
         try:
@@ -133,7 +138,7 @@ def download_shiki_choose_translation(serv, id):
             """
         return render_template('info.html', 
             title="...", image=config.IMAGE_NOT_FOUND, score="...", translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
-            dtype="...", date="...", status="...",
+            dtype="...", date="...", status="...", description='...',
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     else:
         return abort(400)
@@ -153,7 +158,7 @@ def redirect_to_download(serv, id, data, download_type, quality, seria):
     try:
         if serv == "sh":
             if ch_use and ch.is_seria("sh"+id, translation_id, seria):
-                # Получаме данные из кеша (если есть и используется)
+                # Получаем данные из кеша (если есть и используется)
                 url = ch.get_seria("sh"+id, translation_id, seria)
             else:
                 # Получаем данные с сервера
@@ -259,7 +264,7 @@ def watch(serv, id, data, seria, quality = "720", timing = 0):
         url = f"/download/{serv}/{id}/{'-'.join(data)}/old-{quality}-{seria}" # Ссылка на скачивание через этот сервер
         return render_template('watch.html',
             url=url, seria=seria, series=series, id=id, id_type=id_type, data="-".join(data), quality=quality, serv=serv, straight_url=straight_url,
-            allow_watch_together=config.ALLOW_WATCH_TOGETER,
+            allow_watch_together=config.ALLOW_WATCH_TOGETHER,
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False,
             timing=timing, title=title)
     except:
@@ -394,10 +399,30 @@ def fast_download_work(id_type: str, id: str, seria_num: int, translation_id: st
     from fast_download import fast_download, get_path
     translation = translations[translation_id] if translation_id in translations else "Неизвестно"
     add_zeros = len(str(max_series))
-    fname = f'Перевод-{translation}-{quality}p' if seria_num == 0 else f'Серия-{str(seria_num).zfill(add_zeros)}-Перевод-{translation}-{quality}p'
+    if config.USE_SAVED_DATA and ch.is_id('sh'+id):
+        if seria_num != 0:
+            fname = str(ch.get_data_by_id('sh'+id)['title'])+'-'+f'Серия-{str(seria_num).zfill(add_zeros)}-Перевод-{translation}-{quality}p'
+        else:
+            fname = str(ch.get_data_by_id('sh'+id)['title'])+'-'+f'Перевод-{translation}-{quality}p'
+        metadata = {
+            'title': ch.get_data_by_id('sh'+id)['title']+' - Серия: '+str(seria_num) if seria_num != 0 else ch.get_data_by_id('sh'+id)['title'],
+            'year': ch.get_data_by_id('sh'+id)['year'],
+            'date': ch.get_data_by_id('sh'+id)['year'],
+            'comment': ch.get_data_by_id('sh'+id)['description'],
+            'artist': translation,
+            'track': seria_num
+        }
+    else:
+        metadata = {}
+        fname = f'Перевод-{translation}-{quality}p' if seria_num == 0 else f'Серия-{str(seria_num).zfill(add_zeros)}-Перевод-{translation}-{quality}p'
+    if len(fname) > 128: # Ограничение на длину имени файла в винде 255 символов, в линуксе 255 байт (т.е. для кириллицы 128 символов)
+        if len(translation) > 100:
+            fname = f'{quality}p' if seria_num == 0 else f'Серия-{str(seria_num).zfill(add_zeros)}-{quality}p'
+        else:
+            fname = f'Перевод-{translation}-{quality}p' if seria_num == 0 else f'Серия-{str(seria_num).zfill(add_zeros)}-Перевод-{translation}-{quality}p'
     try:
         hsh = fast_download(id, id_type, seria_num, translation_id, quality, config.KODIK_TOKEN,
-                            filename=fname)
+                            filename=fname, metadata=metadata)
         return send_file(get_path(hsh), as_attachment=True)
     except ModuleNotFoundError:
         return abort(500, 'Внимание, на сервере не установлен ffmpeg или программа не может получить к нему доступ. Ffmpeg обязателен для использования быстрой загрузки. (Стандартная загрузка работает без ffmpeg)')

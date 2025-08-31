@@ -10,7 +10,10 @@ class Cache:
             "score": "7.25",
             "status": "онгоинг",
             "date": "c 5 декабря 2023 г",
+            "year": "2023",
             "type": "ТВ сериал",
+            "rating": "PG",
+            "description": "Описание"
             "last_updated": 123456789.0168159, Временной отпечаток последнего обновления информации
             "urls": {
                 "610": {  ID перевода
@@ -78,15 +81,17 @@ class Cache:
             self.__t = time()
             self.save_data_to_file()
     
-    def add_id(self, id: str, title: str, img_url: str, score: str, status: str, dates: str, ttype: str, rating: str = 'Неизвестно'):
+    def add_id(self, id: str, title: str, img_url: str, score: str, status: str, dates: str, year: int, ttype: str, mpaa_rating: str = 'Неизвестно', description: str = ''):
         data = {
             "title": title,
             "image": img_url,
             "score": score,
             "status": status,
             "date": dates,
+            "year": str(year),
             "type": ttype,
-            "rating": rating,
+            "rating": mpaa_rating,
+            "description": description,
             "last_updated": time(),
             "urls": {
             }

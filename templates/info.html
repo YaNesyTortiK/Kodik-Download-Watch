@@ -27,7 +27,8 @@
           Статус: {{ status }}<br>
           Даты выхода: {{ date }}<br>
           Оценка шикимори: {{ score }}<br>
-          Рейтинг: {{ rating }}
+          Рейтинг: {{ rating }}<br><br>
+          Описание: {{ description }}
         </font></p>
       {% else %}
         <table style="padding-bottom: 10px;">
@@ -41,7 +42,8 @@
               Статус: {{ status }}<br>
               Даты выхода: {{ date }}<br>
               Оценка шикимори: {{ score }}<br>
-              Рейтинг: {{ rating }}
+              Рейтинг: {{ rating }}<br><br>
+              Описание: <font size="4">{{ description }}</font>
               </font></p>
             </td>
           </tr>
@@ -88,6 +90,7 @@
       </tr>
       {% endfor %}
       </table>
+      <br><br><br>
     </div>
     <!-- Скрипты Bootstrap 5 -->
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
