@@ -101,7 +101,7 @@ def get_shiki_data(id: str, retries: int = 3):
                 image = d['poster']['originalUrl']
                 dtype = d['kind']
                 dstatus = d['status']
-                dyear = d['releasedOn']['year']
+                dyear = d['releasedOn']['year'] if d['releasedOn']['year'] else 1970
                 ddate = d['releasedOn']['date']
                 score = d['score']
                 rating = d['rating']
@@ -141,7 +141,7 @@ def get_shiki_data(id: str, retries: int = 3):
         score = data['score']
         rating = data['rating']
         description = data['description']
-        dyear = data['dates'][-7:-3] if data['dates'][-7:-3].isdigit() else 1970
+        dyear = data['dates'][-7:-3] if not(data['dates'] is None) and data['dates'][-7:-3].isdigit() else 1970
     return {
         'title': title,
         'image': image,

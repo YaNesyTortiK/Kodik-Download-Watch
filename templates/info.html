@@ -27,7 +27,11 @@
           Статус: {{ status }}<br>
           Даты выхода: {{ date }}<br>
           Оценка шикимори: {{ score }}<br>
-          Рейтинг: {{ rating }}<br><br>
+          Рейтинг: {{ rating }}<br>
+          {% if is_shiki %}
+            <a class="{% if is_dark %}dark-{% endif %}black-href" href="https://shikimori.one/animes/{{ id }}">Ссылка шикимори</a><br>
+          {% endif %}
+          <br>
           Описание: {{ description }}
         </font></p>
       {% else %}
@@ -42,7 +46,11 @@
               Статус: {{ status }}<br>
               Даты выхода: {{ date }}<br>
               Оценка шикимори: {{ score }}<br>
-              Рейтинг: {{ rating }}<br><br>
+              Рейтинг: {{ rating }}<br>
+              {% if is_shiki %}
+                <a class="{% if is_dark %}dark-{% endif %}black-href" href="https://shikimori.one/animes/{{ id }}">Ссылка шикимори</a><br>
+              {% endif %}
+              <br>
               Описание: <font size="4">{{ description }}</font>
               </font></p>
             </td>

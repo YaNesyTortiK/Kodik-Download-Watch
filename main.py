@@ -71,6 +71,14 @@ def search_page(db, query):
 @app.route('/download/<string:serv>/<string:id>/')
 def download_shiki_choose_translation(serv, id):
     if serv == "sh":
+        try:
+            # Получаем данные о наличии переводов от кодика
+            serial_data = get_serial_info(id, "shikimori", token)
+        except Exception as ex:
+            return f"""
+            <h1>По данному запросу нет данных</h1>
+            {f'<p>Exception type: {ex}</p>' if config.DEBUG else ''}
+            """
         cache_used = False
         if ch_use and ch.is_id("sh"+id):
             # Проверка кеша на наличие данных
@@ -110,22 +118,13 @@ def download_shiki_choose_translation(serv, id):
                 if ch_save and not ch.is_id("sh"+id):
                     # Записываем данные в кеш если их там нет
                     ch.add_id("sh"+id, name, pic, score, data['status'] if data else "Неизвестно", data['date'] if data else "Неизвестно", data['year'] if data else 1970, data['type'] if data else "Неизвестно", data['rating'] if data else "Неизвестно", data['description'] if data else '')
-
-        try:
-            # Получаем данные о наличии переводов от кодика
-            serial_data = get_serial_info(id, "shikimori", token)
-        except Exception as ex:
-            return f"""
-            <h1>По данному запросу нет данных</h1>
-            {f'<p>Exception type: {ex}</p>' if config.DEBUG else ''}
-            """
         try:
             related = get_related(id, 'shikimori', sequel_first=True)
         except:
             related = []
         return render_template('info.html', 
             title=name, image=pic, score=score, translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
-            dtype=dtype, date=date, status=status, rating=rating, related=related, description=description,
+            dtype=dtype, date=date, status=status, rating=rating, related=related, description=description, is_shiki=True,
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     elif serv == "kp":
         try:
@@ -138,7 +137,7 @@ def download_shiki_choose_translation(serv, id):
             """
         return render_template('info.html', 
             title="...", image=config.IMAGE_NOT_FOUND, score="...", translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
-            dtype="...", date="...", status="...", description='...',
+            dtype="...", date="...", status="...", description='...', is_shiki=False,
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     else:
         return abort(400)
