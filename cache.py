@@ -15,6 +15,16 @@ class Cache:
             "rating": "PG",
             "description": "Описание"
             "last_updated": 123456789.0168159, Временной отпечаток последнего обновления информации
+            "related": [
+                {
+                    "date": "Даты выхода/сезон",
+                    "name": "Название",
+                    "picture": "Ссылка на картинку",
+                    "relation": "тип связи (продолжение, предыстория, адаптация и т.п.)",
+                    "type": "Тип (TV сериал, OVA, ONA, манга, ранобэ и т.д.)",
+                    "url": "Ссылка на страницу шикимори"
+                }
+            ],
             "urls": {
                 "610": {  ID перевода
                         1: "//example.com/gfjbkjgrg/" Сохранение в таком формате из-за особенности парсинга с кодика
@@ -81,7 +91,7 @@ class Cache:
             self.__t = time()
             self.save_data_to_file()
     
-    def add_id(self, id: str, title: str, img_url: str, score: str, status: str, dates: str, year: int, ttype: str, mpaa_rating: str = 'Неизвестно', description: str = ''):
+    def add_id(self, id: str, title: str, img_url: str, score: str, status: str, dates: str, year: int, ttype: str, mpaa_rating: str = 'Неизвестно', description: str = '', related: list = []):
         data = {
             "title": title,
             "image": img_url,
@@ -93,6 +103,7 @@ class Cache:
             "rating": mpaa_rating,
             "description": description,
             "last_updated": time(),
+            "related": [],
             "urls": {
             }
         }
@@ -106,6 +117,15 @@ class Cache:
     def add_translation(self, id: str, translation_id: str):
         if id in self.data.keys():
             self.data[id]['urls'][translation_id] = {}
+        else:
+            raise KeyError("Id not found")
+        if time() - self.__t > self.period:
+            self.__t = time()
+            self.save_data_to_file()
+    
+    def add_related(self, id: str, related: list):
+        if id in self.data.keys():
+            self.data[id]['related'] = related
         else:
             raise KeyError("Id not found")
         if time() - self.__t > self.period:

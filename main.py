@@ -119,7 +119,16 @@ def download_shiki_choose_translation(serv, id):
                     # Записываем данные в кеш если их там нет
                     ch.add_id("sh"+id, name, pic, score, data['status'] if data else "Неизвестно", data['date'] if data else "Неизвестно", data['year'] if data else 1970, data['type'] if data else "Неизвестно", data['rating'] if data else "Неизвестно", data['description'] if data else '')
         try:
-            related = get_related(id, 'shikimori', sequel_first=True)
+            cache_used = False
+            if ch_use and ch.is_id("sh"+id):
+                cached = ch.get_data_by_id("sh"+id)
+                if not(cached['related'] is None) and not(cached['related'] == []):
+                    related = cached['related']
+                    cache_used = True
+            if not cache_used:
+                related = get_related(id, 'shikimori', sequel_first=True)
+                ch.add_related("sh"+id, related)
+            print('Cache used:', cache_used)
         except:
             related = []
         return render_template('info.html', 
