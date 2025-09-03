@@ -7,7 +7,18 @@ import config
 if config.USE_LXML:
     import lxml
 
-kodik_parser = KodikParser(use_lxml=config.USE_LXML)
+if config.KODIK_TOKEN is None:
+    kodik_parser = KodikParser(use_lxml=config.USE_LXML)
+    try:
+        kodik_parser.get_info('53446', 'shikimori')
+    except errors.TokenError:
+        raise Warning('[ERROR] Wrong KODIK_TOKEN is set. Program can not use this token to access Kodik. Set correct one or set KODIK_TOKEN as None to use auto-finding.')
+else:
+    kodik_parser = KodikParser(token=config.KODIK_TOKEN, use_lxml=config.USE_LXML)
+    try:
+        kodik_parser.get_info('53446', 'shikimori')
+    except errors.TokenError:
+        raise Warning('[ERROR] Wrong KODIK_TOKEN is set. Program can not use this token to access Kodik. Set correct one or set KODIK_TOKEN as None to use auto-finding.')
 shiki_parser = ShikimoriParser(use_lxml=config.USE_LXML)
 
 def get_url_data(url: str, headers: dict = None, session=None):
@@ -19,7 +30,7 @@ def get_serial_info(id: str, id_type: str, token: str) -> dict:
 def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str, token: str):
     return kodik_parser.get_link(id, id_type, seria_num, translation_id)[0]
 
-def get_search_data(search_query: str, token: str, ch: Cache = None):
+def get_search_data(search_query: str, token: str | None, ch: Cache = None):
     search_res = kodik_parser.search(search_query, limit=50)
     items = []
     others = []
