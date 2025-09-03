@@ -175,7 +175,7 @@ def redirect_to_download(serv, id, data, download_type, quality, seria):
             else:
                 # Получаем данные с сервера
                 url = get_download_link(id, "shikimori", seria, translation_id, token)
-                if ch_save and not ch.is_seria("sh"+id, translation_id, seria):
+                if ch_save:
                     # Записываем данные в кеш
                     try:
                         # Попытка записать данные к уже имеющимся данным
@@ -189,7 +189,7 @@ def redirect_to_download(serv, id, data, download_type, quality, seria):
             else:
                 # Получаем данные с сервера
                 url = get_download_link(id, "kinopoisk", seria, translation_id, token)
-                if ch_save and not ch.is_seria("kp"+id, translation_id, seria):
+                if ch_save:
                     # Записываем данные в кеш
                     try:
                         # Попытка записать данные к уже имеющимся данным
@@ -438,8 +438,15 @@ def fast_download_work(id_type: str, id: str, seria_num: int, translation_id: st
         .replace('»', '\'').replace('«', '\'').replace('„', '\'').replace('“', '\'').replace('<', '[') \
         .replace(']', ')').replace('|', '-')
     try:
-        hsh = fast_download(id, id_type, seria_num, translation_id, quality, config.KODIK_TOKEN,
+        hsh, link = fast_download(id, id_type, seria_num, translation_id, quality, config.KODIK_TOKEN,
                             filename=fname, metadata=metadata)
+        if ch_save:
+            # Записываем данные в кеш
+            try:
+                # Попытка записать данные к уже имеющимся данным
+                ch.add_seria("kp"+id, translation_id, seria_num, link)
+            except KeyError:
+                pass
         return send_file(get_path(hsh), as_attachment=True)
     except ModuleNotFoundError:
         return abort(500, 'Внимание, на сервере не установлен ffmpeg или программа не может получить к нему доступ. Ffmpeg обязателен для использования быстрой загрузки. (Стандартная загрузка работает без ffmpeg)')

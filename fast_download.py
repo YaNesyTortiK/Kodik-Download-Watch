@@ -5,7 +5,7 @@ import os
 import threading
 import subprocess
 
-def fast_download(id: str, id_type: str, seria_num: int, translation_id: str, quality: str, token: str, filename: str = 'result', metadata: dict = {}) -> str:
+def fast_download(id: str, id_type: str, seria_num: int, translation_id: str, quality: str, token: str, filename: str = 'result', metadata: dict = {}) -> tuple[str, str]:
     """
     Эта функция обеспечивает быструю загрузку засчет параллельной загрузки нескольких фрагментов.
     :id: Id сериала на Шикимори/Кинопоиске
@@ -14,7 +14,7 @@ def fast_download(id: str, id_type: str, seria_num: int, translation_id: str, qu
     :translation_id: id переода/субтитров (Прим: 640 - Anilibria.TV)
     :token: Токен Kodik
 
-    Возвращает хэш значение по которому можно получить путь до файла с результатом
+    Возвращает хэш значение по которому можно получить путь до файла с результатом и ссылку на файл
     """
     check_ffmpeg() # Проверка на досутпность ffmpeg из модуля subprocess
     hsh = md5(str(id+id_type+translation_id+str(seria_num)+quality).encode('utf-8')).hexdigest()+"~"
@@ -43,7 +43,7 @@ def fast_download(id: str, id_type: str, seria_num: int, translation_id: str, qu
     for x in threads:
         x.join()
     combine_segments('tmp/'+hsh+'/', segments_count=len(segments), name=filename.replace(' ', '-'), metadata=metadata)
-    return hsh
+    return (hsh, link)
 
 def get_segments(manifest: str, original_link: str) -> list[str]:
     res = []
