@@ -71,14 +71,17 @@ def search_page(db, query):
 @app.route('/download/<string:serv>/<string:id>/')
 def download_shiki_choose_translation(serv, id):
     if serv == "sh":
-        try:
-            # Получаем данные о наличии переводов от кодика
-            serial_data = get_serial_info(id, "shikimori", token)
-        except Exception as ex:
-            return f"""
-            <h1>По данному запросу нет данных</h1>
-            {f'<p>Exception type: {ex}</p>' if config.DEBUG else ''}
-            """
+        if ch_use and ch.is_id("sh"+id) and ch.get_data_by_id("sh"+id)['serial_data'] != {}:
+            serial_data = ch.get_data_by_id("sh"+id)['serial_data']
+        else:
+            try:
+                # Получаем данные о наличии переводов от кодика
+                serial_data = get_serial_info(id, "shikimori", token)
+            except Exception as ex:
+                return f"""
+                <h1>По данному запросу нет данных</h1>
+                {f'<p>Exception type: {ex}</p>' if config.DEBUG else ''}
+                """
         cache_used = False
         if ch_use and ch.is_id("sh"+id):
             # Проверка кеша на наличие данных
@@ -117,18 +120,18 @@ def download_shiki_choose_translation(serv, id):
             finally:
                 if ch_save and not ch.is_id("sh"+id):
                     # Записываем данные в кеш если их там нет
-                    ch.add_id("sh"+id, name, pic, score, data['status'] if data else "Неизвестно", data['date'] if data else "Неизвестно", data['year'] if data else 1970, data['type'] if data else "Неизвестно", data['rating'] if data else "Неизвестно", data['description'] if data else '')
+                    ch.add_id("sh"+id, name, pic, score, data['status'] if data else "Неизвестно", 
+                              data['date'] if data else "Неизвестно", data['year'] if data else 1970, 
+                              data['type'] if data else "Неизвестно", data['rating'] if data else "Неизвестно", 
+                              data['description'] if data else '', serial_data=serial_data)
+        if ch_use and ch_save and ch.is_id("sh"+id) and ch.get_data_by_id("sh"+id)['serial_data'] == {}:
+            ch.add_serial_data("sh"+id, serial_data)
         try:
-            cache_used = False
-            if ch_use and ch.is_id("sh"+id):
-                cached = ch.get_data_by_id("sh"+id)
-                if not(cached['related'] is None) and not(cached['related'] == []):
-                    related = cached['related']
-                    cache_used = True
-            if not cache_used:
+            if ch_use and ch.is_id("sh"+id) and ch.get_data_by_id("sh"+id)['related'] != []:
+                related = ch.get_data_by_id("sh"+id)['related']
+            else:
                 related = get_related(id, 'shikimori', sequel_first=True)
                 ch.add_related("sh"+id, related)
-            print('Cache used:', cache_used)
         except:
             related = []
         return render_template('info.html', 

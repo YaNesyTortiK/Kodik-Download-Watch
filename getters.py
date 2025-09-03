@@ -25,23 +25,11 @@ def get_search_data(search_query: str, token: str, ch: Cache = None):
     others = []
     used_ids = []
     for item in search_res:
+        # Проверка на наличие shikimori_id и на отсутствие его в уже добавленных тайтлах
         if 'shikimori_id' in item.keys() and item['shikimori_id'] != None and item['shikimori_id'] not in used_ids:
-            # Проверка на наличие shikimori_id и на отсутствие его в уже добавленных тайтлах
-            if ch != None and ch.is_id("sh"+item['shikimori_id']):
-                # Проверка на наличие данных в кеше
-                ch_ser_data = ch.get_data_by_id("sh"+item['shikimori_id'])
-                if time() - ch_ser_data['last_updated'] > ch.life_time:
-                    # Обновление данных если они устарели (CACHE_LIFE_TIME был превышен)
-                    try:
-                        ser_data = get_shiki_data(item['shikimori_id'])
-                    except RuntimeWarning:
-                        continue
-                    ch.add_id("sh"+item['shikimori_id'],
-                        ser_data['title'], ser_data['image'], ser_data['score'], ser_data['status'], ser_data['date'], ser_data['year'], ser_data['type'], ser_data['rating'], ser_data['description'])
-                else:
-                    ser_data = ch_ser_data
-            else:
-                # Если данных в кеше нет или кеш не используется
+            if ch != None and ch.is_id("sh"+item['shikimori_id']): # Проверка на наличие данных в кеше
+                ser_data = ch.get_data_by_id("sh"+item['shikimori_id'])
+            else: # Если данных в кеше нет или кеш не используется
                 try:
                     ser_data = get_shiki_data(item['shikimori_id'])
                 except RuntimeWarning:
@@ -180,7 +168,7 @@ def get_related(id: str, id_type: str, sequel_first: bool = False) -> list:
         return res
 
 def is_good_quality_image(src: str) -> bool:
-    if "preview" in src or "main_alt" in src:
+    if "preview" in src:
         return False
     else:
         return True

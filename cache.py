@@ -25,6 +25,16 @@ class Cache:
                     "url": "Ссылка на страницу шикимори"
                 }
             ],
+            "serial_data": {
+                "translations": [
+                    {
+                        "id": "ID перевода",
+                        "name": "Название перевода/озвучки",
+                        "type": "voice/subtitles"
+                    }
+                ],
+                "series_count": Кол-во серий
+            },
             "urls": {
                 "610": {  ID перевода
                         1: "//example.com/gfjbkjgrg/" Сохранение в таком формате из-за особенности парсинга с кодика
@@ -91,7 +101,7 @@ class Cache:
             self.__t = time()
             self.save_data_to_file()
     
-    def add_id(self, id: str, title: str, img_url: str, score: str, status: str, dates: str, year: int, ttype: str, mpaa_rating: str = 'Неизвестно', description: str = '', related: list = []):
+    def add_id(self, id: str, title: str, img_url: str, score: str, status: str, dates: str, year: int, ttype: str, mpaa_rating: str = 'Неизвестно', description: str = '', related: list = [], serial_data: dict = {}):
         data = {
             "title": title,
             "image": img_url,
@@ -103,7 +113,8 @@ class Cache:
             "rating": mpaa_rating,
             "description": description,
             "last_updated": time(),
-            "related": [],
+            "related": related,
+            "serial_data": serial_data,
             "urls": {
             }
         }
@@ -117,6 +128,15 @@ class Cache:
     def add_translation(self, id: str, translation_id: str):
         if id in self.data.keys():
             self.data[id]['urls'][translation_id] = {}
+        else:
+            raise KeyError("Id not found")
+        if time() - self.__t > self.period:
+            self.__t = time()
+            self.save_data_to_file()
+
+    def add_serial_data(self, id: str, serial_data: dict):
+        if id in self.data.keys():
+            self.data[id]["serial_data"] = serial_data
         else:
             raise KeyError("Id not found")
         if time() - self.__t > self.period:
@@ -142,6 +162,9 @@ class Cache:
     def is_id(self, id: str) -> bool:
         try:
             if id in self.data.keys():
+                if self._is_expired(self.data[id]['last_updated']):
+                    del self.data[id]
+                    return False
                 return True
             else:
                 return False 
@@ -151,6 +174,9 @@ class Cache:
     def is_translation(self, id: str, translation_id: str) -> bool:
         try:
             if translation_id in self.data[id]['urls'].keys():
+                if self._is_expired(self.data[id]['last_updated']):
+                    del self.data[id]
+                    return False
                 return True
             else:
                 return False
@@ -160,8 +186,14 @@ class Cache:
     def is_seria(self, id: str, translation_id: str, seria_num: int) -> bool:
         try:
             if seria_num in self.data[id]['urls'][translation_id].keys():
+                if self._is_expired(self.data[id]['last_updated']):
+                    del self.data[id]
+                    return False
                 return True
             else:
                 return False
         except KeyError:
             return False
+
+    def _is_expired(self, cache_time: float) -> bool:
+        return True if time()-cache_time > self.life_time else False
