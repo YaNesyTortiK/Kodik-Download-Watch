@@ -158,7 +158,8 @@ def download_shiki_choose_translation(serv, id):
 def download_choose_seria(serv, id, data):
     data = data.split('-')
     series = int(data[0])
-    return render_template('download.html', series=series, is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
+    return render_template('download.html', series=series, backlink=f"/download/{serv}/{id}/",
+                           is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
 
 @app.route('/download/<string:serv>/<string:id>/<string:data>/<string:download_type>-<string:quality>-<int:seria>/')
 def redirect_to_download(serv, id, data, download_type, quality, seria):

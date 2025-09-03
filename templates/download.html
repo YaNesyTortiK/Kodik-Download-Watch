@@ -57,6 +57,8 @@
         <p>Стандартная загрузка: <a href="old-720-0/"{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href="old-480-0/"{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href="old-360-0/"{% if is_dark %} class="dark-href"{% endif %}>360</a></p>
         <a href='watch-0/'{% if is_dark %} class="dark-href"{% endif %}>Смотреть онлайн</a>
       {% endif %}
+      <br>
+      <a href='{{ backlink }}'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">Вернуться назад</button></a>
     </div>
     <!-- Скрипты Bootstrap 5 -->
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>

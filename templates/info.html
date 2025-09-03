@@ -22,7 +22,7 @@
       {% if request.MOBILE %}
         <img src="{{ image }}" height=500px style="padding-bottom: 10px;">
         <br>
-        <p><font size="4">
+        <div><font size="4">
           Тип: {{ dtype }}<br>
           Статус: {{ status }}<br>
           Даты выхода: {{ date }}<br>
@@ -32,8 +32,10 @@
             <a class="{% if is_dark %}dark-{% endif %}black-href" href="https://shikimori.one/animes/{{ id }}">Ссылка шикимори</a><br>
           {% endif %}
           <br>
-          Описание: {{ description }}
-        </font></p>
+          <details><summary>Описание</summary>
+                  <font size="4">{{ description }}</font>
+                </details>
+        </font></div>
       {% else %}
         <table style="padding-bottom: 10px;">
           <tr>
@@ -41,7 +43,7 @@
               <img src="{{ image }}" height=500px>
             </td>
             <td style="vertical-align: top;">
-              <p style="padding-left: 30px;"><font size="5">
+              <div style="padding-left: 30px;"><font size="5">
               Тип: {{ dtype }}<br>
               Статус: {{ status }}<br>
               Даты выхода: {{ date }}<br>
@@ -51,8 +53,10 @@
                 <a class="{% if is_dark %}dark-{% endif %}black-href" href="https://shikimori.one/animes/{{ id }}">Ссылка шикимори</a><br>
               {% endif %}
               <br>
-              Описание: <font size="4">{{ description }}</font>
-              </font></p>
+              <details><summary>Описание</summary>
+                  <font size="4">{{ description }}</font>
+                </details>
+              </font></div>
             </td>
           </tr>
         </table>
