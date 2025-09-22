@@ -8,13 +8,13 @@ if config.USE_LXML:
     import lxml
 
 if config.KODIK_TOKEN is None:
-    kodik_parser = KodikParser(use_lxml=config.USE_LXML)
+    kodik_parser = KodikParser(use_lxml=config.USE_LXML, validate_token=False)
     try:
         kodik_parser.get_info('53446', 'shikimori')
     except errors.TokenError:
         raise Warning('[ERROR] Wrong KODIK_TOKEN is set. Program can not use this token to access Kodik. Set correct one or set KODIK_TOKEN as None to use auto-finding.')
 else:
-    kodik_parser = KodikParser(token=config.KODIK_TOKEN, use_lxml=config.USE_LXML)
+    kodik_parser = KodikParser(token=config.KODIK_TOKEN, use_lxml=config.USE_LXML, validate_token=False)
     try:
         kodik_parser.get_info('53446', 'shikimori')
     except errors.TokenError:
@@ -31,7 +31,13 @@ def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str
     return kodik_parser.get_link(id, id_type, seria_num, translation_id)[0]
 
 def get_search_data(search_query: str, token: str | None, ch: Cache = None):
-    search_res = kodik_parser.search(search_query, limit=50)
+    if config.KODIK_TOKEN:
+        search_res = kodik_parser.search(search_query, limit=50)
+    else:
+        search_res = shiki_parser.search(search_query)
+        # Если хотите использовать GraphQL для поиска, то закомментируйте строку выше, и раскомментируйте эту
+        # search_res = [{"shikimori_id": x['id'], 'title': x['russian']} for x in shiki_parser.deep_search(search_query, return_parameters=['id', 'russian'])]
+
     items = []
     others = []
     used_ids = []
