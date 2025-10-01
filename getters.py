@@ -7,18 +7,25 @@ import config
 if config.USE_LXML:
     import lxml
 
+USE_KODIK_SEARCH = False
+
 if config.KODIK_TOKEN is None:
-    kodik_parser = KodikParser(use_lxml=config.USE_LXML, validate_token=False)
     try:
-        kodik_parser.get_info('53446', 'shikimori')
+        # Проверяем, может ли токен получить доступ к апи полностью
+        kodik_parser = KodikParser(use_lxml=config.USE_LXML, validate_token=True)
     except errors.TokenError:
-        raise Warning('[ERROR] Wrong KODIK_TOKEN is set. Program can not use this token to access Kodik. Set correct one or set KODIK_TOKEN as None to use auto-finding.')
+        print("Токен неверен для нескольких функций. Поиск будет происходить по шикимори.")
+        # Если не может, то без валидации (поиск будет через шики)
+        kodik_parser = KodikParser(use_lxml=config.USE_LXML, validate_token=False)
+    else:
+        # Если ошибки по токену нет, значит используем поиск по кодику
+        USE_KODIK_SEARCH = True
 else:
-    kodik_parser = KodikParser(token=config.KODIK_TOKEN, use_lxml=config.USE_LXML, validate_token=False)
-    try:
-        kodik_parser.get_info('53446', 'shikimori')
-    except errors.TokenError:
-        raise Warning('[ERROR] Wrong KODIK_TOKEN is set. Program can not use this token to access Kodik. Set correct one or set KODIK_TOKEN as None to use auto-finding.')
+    # Токен указан в конфиге, поэтому принимается за полностью рабочий
+    # и проходит полную валидацию
+    kodik_parser = KodikParser(token=config.KODIK_TOKEN, use_lxml=config.USE_LXML, validate_token=True)
+    USE_KODIK_SEARCH = True
+
 shiki_parser = ShikimoriParser(use_lxml=config.USE_LXML)
 
 def get_url_data(url: str, headers: dict = None, session=None):
@@ -31,7 +38,7 @@ def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str
     return kodik_parser.get_link(id, id_type, seria_num, translation_id)[0]
 
 def get_search_data(search_query: str, token: str | None, ch: Cache = None):
-    if config.KODIK_TOKEN:
+    if USE_KODIK_SEARCH:
         search_res = kodik_parser.search(search_query, limit=50)
     else:
         search_res = shiki_parser.search(search_query)
