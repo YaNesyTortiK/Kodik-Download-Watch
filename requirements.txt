@@ -1,4 +1,4 @@
-anime_parsers_ru==1.12.3
+anime_parsers_ru==1.13.1
 beautifulsoup4==4.12.2
 bidict==0.22.1
 certifi==2022.12.7

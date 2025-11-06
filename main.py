@@ -436,7 +436,7 @@ def fast_download_work(id_type: str, id: str, seria_num: int, translation_id: st
     # +=[]:*?;«,./\<>|'пробел'  /\:*?<>|
     fname = fname.replace('\\','-').replace('/', '-').replace(':', '-').replace('*','-').replace('"', '\'') \
         .replace('»', '\'').replace('«', '\'').replace('„', '\'').replace('“', '\'').replace('<', '[') \
-        .replace(']', ')').replace('|', '-')
+        .replace(']', ')').replace('|', '-').replace('--', '-').replace('--', '-')
     try:
         hsh, link = fast_download(id, id_type, seria_num, translation_id, quality, config.KODIK_TOKEN,
                             filename=fname, metadata=metadata)
