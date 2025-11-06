@@ -15,7 +15,7 @@ socketio = SocketIO(app)
 token = config.KODIK_TOKEN
 app.config['SECRET_KEY'] = config.APP_SECRET_KEY
 
-with open("translations.json", 'r') as f:
+with open("translations.json", 'r', encoding='utf-8') as f:
     # Используется для указания озвучки при скачивании файла
     translations = load(f)
 
