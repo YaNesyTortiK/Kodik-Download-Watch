@@ -114,8 +114,14 @@ def download_shiki_choose_translation(serv, id):
                 description = data['description']
             except:
                 name = 'Неизвестно'
-                pic = config.IMAGE_AGE_RESTRICTED
+                pic = config.IMAGE_NOT_FOUND
                 score = 'Неизвестно'
+                dtype = 'Неизвестно'
+                date = 'Неизвестно'
+                status = 'Неизвестно'
+                rating = 'Неизвестно'
+                year = 'Неизвестно'
+                description = 'Неизвестно'
                 data = False
             finally:
                 if ch_save and not ch.is_id("sh"+id):

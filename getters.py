@@ -26,7 +26,7 @@ else:
     kodik_parser = KodikParser(token=config.KODIK_TOKEN, use_lxml=config.USE_LXML, validate_token=True)
     USE_KODIK_SEARCH = True
 
-shiki_parser = ShikimoriParser(use_lxml=config.USE_LXML)
+shiki_parser = ShikimoriParser(use_lxml=config.USE_LXML, mirror=config.SHIKIMORI_MIRROR)
 
 def get_url_data(url: str, headers: dict = None, session=None):
     return requests.get(url, headers=headers).text
@@ -139,7 +139,7 @@ def get_shiki_data(id: str, retries: int = 3):
             dyear = 1970
             description = 'Неизвестно'
     except errors.TooManyRequests:
-        # Сервер не допукает слишком частое обращение
+        # Сервер не допускает слишком частое обращение
         sleep(0.5)
         return get_shiki_data(id, retries=retries-1)
     except errors.NoResults:
