@@ -35,10 +35,22 @@
             </table>
           </td>
           <td>
-            <table align='right'>
-              <td><button id="skip_left" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_left();">Назад на 1:20</button></td>
-              <td><button id="skip_right" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_right();">Вперед на 1:20</button></td>
-            </table>
+            {% if is_mobile %}
+              <div>
+                <div style="display: flex; justify-content: center; text-align: center;">
+                  Перемотка на 1:20
+                </div>
+                <div style="display: flex; justify-content: center;">
+                  <button id="skip_left" class="btn {% if is_dark %}dark-{% endif %}btn-primary" style="display: inline; width: 50%;" onclick="skip_left();">&lt;</button>
+                  <button id="skip_right" class="btn {% if is_dark %}dark-{% endif %}btn-primary" style="display: inline; width: 50%;" onclick="skip_right();">&gt;</button>
+                </div>
+              </div>
+            {% else %}
+              <table align='right'>
+                <td><button id="skip_left" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_left();">Назад на 1:20</button></td>
+                <td><button id="skip_right" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_right();">Вперед на 1:20</button></td>
+              </table>
+            {% endif %}
           </td>
         </tr>
       </table>

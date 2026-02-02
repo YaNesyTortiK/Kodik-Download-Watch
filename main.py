@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, abort, session, send_file
+from flask import Flask, render_template, request, redirect, abort, session, send_file, g
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 from flask_mobility import Mobility
 from getters import *
@@ -29,6 +29,7 @@ watch_manager = watch_together.Manager(config.REMOVE_TIME)
 
 # Очистка tmp
 clear_tmp()
+
 
 @app.route('/')
 def index():
@@ -61,9 +62,9 @@ def search_page(db, query):
         try:
             # Попытка получить данные с кодика
             s_data = get_search_data(query, token, ch if ch_save or ch_use else None)
-            return render_template('search.html', items=s_data[0], others=s_data[1], is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
+            return render_template('search.html', items=s_data[0], others=s_data[1], is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile)
         except:
-            return render_template('search.html', is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
+            return render_template('search.html', is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile)
     else:
         # Другие базы не поддерживаются (возможно в будущем будут)
         return abort(400)
@@ -143,7 +144,7 @@ def download_shiki_choose_translation(serv, id):
         return render_template('info.html', 
             title=name, image=pic, score=score, translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
             dtype=dtype, date=date, status=status, rating=rating, related=related, description=description, is_shiki=True,
-            is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
+            is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile)
     elif serv == "kp":
         try:
             # Получаем данные о наличии переводов от кодика
@@ -156,7 +157,7 @@ def download_shiki_choose_translation(serv, id):
         return render_template('info.html', 
             title="...", image=config.IMAGE_NOT_FOUND, score="...", translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
             dtype="...", date="...", status="...", description='...', is_shiki=False,
-            is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
+            is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile)
     else:
         return abort(400)
 
@@ -165,7 +166,7 @@ def download_choose_seria(serv, id, data):
     data = data.split('-')
     series = int(data[0])
     return render_template('download.html', series=series, backlink=f"/download/{serv}/{id}/",
-                           is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
+                           is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile)
 
 @app.route('/download/<string:serv>/<string:id>/<string:data>/<string:download_type>-<string:quality>-<int:seria>/')
 def redirect_to_download(serv, id, data, download_type, quality, seria):
@@ -284,7 +285,7 @@ def watch(serv, id, data, seria, quality = "720", timing = 0):
             url=url, seria=seria, series=series, id=id, id_type=id_type, data="-".join(data), quality=quality, serv=serv, straight_url=straight_url,
             allow_watch_together=config.ALLOW_WATCH_TOGETHER,
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False,
-            timing=timing, title=title)
+            timing=timing, title=title, is_mobile=g.is_mobile)
     except:
         return abort(404)
 
@@ -374,7 +375,7 @@ def room(rid):
         return render_template('room.html',
             url=url, seria=seria, series=series, id=id, id_type=id_type, data=f"{series}-{translation_id}", quality=quality, serv=rd['serv'], straight_url=straight_url,
             start_time=rd['play_time'],
-            is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
+            is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile)
     except:
         return abort(500)
 
@@ -465,7 +466,7 @@ def fast_download_prepare(id_type: str, id: str, seria_num: int, translation_id:
     return render_template('fast_download_prepare.html', seria_num=seria_num,
                            url=f'/fast_download_act/{id_type}-{id}-{seria_num}-{translation_id}-{quality}-{max_series}/',
                            past_url=request.referrer if request.referrer else f'/download/{id_type}/{id}/',
-                           is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
+                           is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile)
 
 # =======================================================================
 # Sockets ====================================

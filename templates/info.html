@@ -19,7 +19,7 @@
     </table>
     <div class="container mt-5">
       <h1 class="mb-4">{{ title }}</h1>
-      {% if request.MOBILE %}
+      {% if is_mobile %}
         <img src="{{ image }}" height=500px style="padding-bottom: 10px;">
         <br>
         <div><font size="4">

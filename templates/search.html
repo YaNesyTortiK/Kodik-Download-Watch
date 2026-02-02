@@ -32,7 +32,7 @@
     <table width=100%>
       <tr width=100%>
         {% for item in items %}
-        <th width="{{ 100/ 1 if request.MOBILE else 3 }}%">
+        <th width="{{ 100/ 1 if is_mobile else 3 }}%">
           <div class="mb-3">
             <a href="/download/sh/{{ item.id }}/" class="{% if is_dark %}dark-{% endif %}black-href">
             <table width=100%>
@@ -51,7 +51,7 @@
             </a>
           </div>
         </th>
-          {% if loop.index % (1 if request.MOBILE else 3) == 0 %}
+          {% if loop.index % (1 if is_mobile else 3) == 0 %}
             </tr><tr width=100%>
           {% endif %}
         {% else %}
