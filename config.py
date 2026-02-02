@@ -1,5 +1,5 @@
 KODIK_TOKEN = None
-SHIKIMORI_MIRROR = None # Домен зеркало для shikimori. None = параметр из парсера по умолчанию
+SHIKIMORI_MIRROR = "shiki.one" # Домен зеркало для shikimori. None = параметр из парсера по умолчанию
 APP_SECRET_KEY = "some_super_ultra_unbelievable_key"
 DEBUG = False # Debug от Flask
 SAVE_DATA = True # Для сохранения результатов парсинга (картинки, названия, ссылки на видео)

@@ -30,6 +30,9 @@ watch_manager = watch_together.Manager(config.REMOVE_TIME)
 # Очистка tmp
 clear_tmp()
 
+# Проверка доступности шикимори
+test_shiki()
+
 
 @app.route('/')
 def index():

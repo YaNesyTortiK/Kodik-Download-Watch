@@ -28,6 +28,15 @@ else:
 
 shiki_parser = ShikimoriParser(use_lxml=config.USE_LXML, mirror=config.SHIKIMORI_MIRROR)
 
+def test_shiki():
+    try:
+        shiki_parser.anime_info(shiki_parser.link_by_id('z20'))
+    except (requests.exceptions.HTTPError, requests.exceptions.SSLError, requests.exceptions.Timeout, requests.exceptions.ReadTimeout) as ex:
+        raise Warning(f"Произошла ошибка соединения при проверке парсера Шикимори.\nПроверьте доступность сайта/зеркала.\nТекущий используемый домен: {shiki_parser._dmn}\n"\
+              f"Текст ошибки: {ex}")
+    except Exception as ex:
+        raise Warning(f"Произошла непредвиденная ошибка при проверка парсера Шикимори.\nТекст ошибки: \"{ex}\"")
+
 def get_url_data(url: str, headers: dict = None, session=None):
     return requests.get(url, headers=headers).text
 
