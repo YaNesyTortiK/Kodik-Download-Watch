@@ -12,11 +12,11 @@ USE_KODIK_SEARCH = False
 if config.KODIK_TOKEN is None:
     try:
         # Проверяем, может ли токен получить доступ к апи полностью
-        kodik_parser = KodikParser(use_lxml=config.USE_LXML, validate_token=True)
+        kodik_parser = KodikParser(token=KodikParser.get_token(), use_lxml=config.USE_LXML, validate_token=True)
     except errors.TokenError:
         print("Токен неверен для нескольких функций. Поиск будет происходить по шикимори.")
         # Если не может, то без валидации (поиск будет через шики)
-        kodik_parser = KodikParser(use_lxml=config.USE_LXML, validate_token=False)
+        kodik_parser = KodikParser(token=KodikParser.get_token(), use_lxml=config.USE_LXML, validate_token=False)
     else:
         # Если ошибки по токену нет, значит используем поиск по кодику
         USE_KODIK_SEARCH = True

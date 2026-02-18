@@ -36,7 +36,7 @@ test_shiki()
 
 @app.route('/')
 def index():
-    return render_template('index.html', is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
+    return render_template('index.html', is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_kodik_search=USE_KODIK_SEARCH)
 
 @app.route('/', methods=['POST'])
 def index_form():
@@ -65,9 +65,9 @@ def search_page(db, query):
         try:
             # Попытка получить данные с кодика
             s_data = get_search_data(query, token, ch if ch_save or ch_use else None)
-            return render_template('search.html', items=s_data[0], others=s_data[1], is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile)
+            return render_template('search.html', items=s_data[0], others=s_data[1], is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile, is_kodik_search=USE_KODIK_SEARCH)
         except:
-            return render_template('search.html', is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile)
+            return render_template('search.html', is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile, is_kodik_search=USE_KODIK_SEARCH)
     else:
         # Другие базы не поддерживаются (возможно в будущем будут)
         return abort(400)

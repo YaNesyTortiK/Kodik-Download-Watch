@@ -18,7 +18,11 @@
       </tr>
     </table>
     <div class="container mt-5">
-      <h1 class="text-center mb-4">Поиск</h1>
+      {% if is_kodik_search %}
+        <h1 class="text-center mb-4">Поиск по Kodik</h1>
+      {% else %}
+        <h1 class="text-center mb-4">Поиск по Шикимори</h1>
+      {% endif %}
       <form method="POST" novalidate action="/">
         <div class="mb-3">
           <label for="original-url" class="form-label">Введите название</label>
