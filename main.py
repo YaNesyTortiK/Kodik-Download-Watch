@@ -147,7 +147,8 @@ def download_shiki_choose_translation(serv, id):
         return render_template('info.html', 
             title=name, image=pic, score=score, translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
             dtype=dtype, date=date, status=status, rating=rating, related=related, description=description, is_shiki=True,
-            is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile)
+            is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile,
+            shiki_mirror=config.SHIKIMORI_MIRROR if config.SHIKIMORI_MIRROR else "shikimori.one")
     elif serv == "kp":
         try:
             # Получаем данные о наличии переводов от кодика

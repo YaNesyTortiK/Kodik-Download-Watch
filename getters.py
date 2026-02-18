@@ -189,14 +189,14 @@ def get_related(id: str, id_type: str, sequel_first: bool = False) -> list:
     for x in data:
         if x['date'] is None:
             x['date'] = 'Неизвестно'
-        if x['type'] in ['Манга', 'Ранобэ']:
+        if x['type'] in ['Манга', 'Ранобэ', 'Клип']:
             x['internal_link'] = x['url']
         else:
             sid = shiki_parser.id_by_link(x['url'])
             x['internal_link'] = f'/download/sh/{sid}/'
         res.append(x)
     if sequel_first:
-        return sorted(res, key=lambda x: 0 if x["relation"] == 'Продолжение' else 1)
+        return sorted(res, key=lambda x: 0 if x["relation"] == 'Продолжение' else (1 if x["relation"] == 'Предыстория' else 2))
     else:
         return res
 
