@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Гайд</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+</head>
+<body class="guide">
+<h1>Установка плеера</h1>
+<p>Сайт работает в связке с плеером, для установки скачайте:<br>
+<a href="{{ url_for('download_file') }}">dgnmpv.zip</a> - для higher-end видеокарт (Eg. GTX 1080, RTX 2070, RTX 3060, RX 590, 5700XT, 6600XT)<br>
+<a href="{{ url_for('download_file') }}">dgnmpv-low-end.zip</a> - для lower-end видеокарт (Eg. GTX 980, GTX 1060, RX 570)<br>
+разархивируйте и запустите файл "RUN_ME_AS_ADMINISTRATOR.bat" ОТ ИМЕНИ АДМИНИСТРАТОРА
+</p>
+<br>
+<P>после установки папку можно удалить</P>
+</body>
+</html>

@@ -1,6 +1,7 @@
 from json import load, dump, JSONDecodeError
 from time import time
 
+
 class Cache:
     """
     data example:
@@ -100,7 +101,7 @@ class Cache:
         if time() - self.__t > self.period:
             self.__t = time()
             self.save_data_to_file()
-    
+
     def add_id(self, id: str, title: str, img_url: str, score: str, status: str, dates: str, year: int, ttype: str, mpaa_rating: str = 'Неизвестно', description: str = '', related: list = [], serial_data: dict = {}):
         data = {
             "title": title,

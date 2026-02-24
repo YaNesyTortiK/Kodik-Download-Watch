@@ -6,6 +6,8 @@
     <title>{{ title }}</title>
     <!-- Стили Bootstrap 5 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+
   </head>
   <body {% if is_dark %}class="dark-body"{% endif %}>
     <!-- Контент -->
@@ -18,9 +20,9 @@
       </tr>
     </table>
     <div class="container mt-5">
-      <h1 class="mb-4">{{ title }}</h1>
-      {% if is_mobile %}
-        <img src="{{ image }}" height=500px style="padding-bottom: 10px;">
+      <h1 class="mb-4 anime-title">{{ title }}</h1>
+      {% if request.MOBILE %}
+        <img class="imglink" src="{{ image }}" height=500px style="padding-bottom: 10px;">
         <br>
         <div><font size="4">
           Тип: {{ dtype }}<br>
@@ -29,7 +31,7 @@
           Оценка шикимори: {{ score }}<br>
           Рейтинг: {{ rating }}<br>
           {% if is_shiki %}
-            <a class="{% if is_dark %}dark-{% endif %}black-href" href="https://{{ shiki_mirror }}/animes/{{ id }}">Ссылка шикимори</a><br>
+            <a class="{% if is_dark %}dark-{% endif %}black-href" href="https://shikimori.one/animes/{{ id }}">Ссылка шикимори</a><br>
           {% endif %}
           <br>
           <details><summary>Описание</summary>
@@ -40,7 +42,7 @@
         <table style="padding-bottom: 10px;">
           <tr>
             <td>
-              <img src="{{ image }}" height=500px>
+              <img class="imglink" src="{{ image }}" height=500px>
             </td>
             <td style="vertical-align: top;">
               <div style="padding-left: 30px;"><font size="5">
@@ -50,8 +52,8 @@
               Оценка шикимори: {{ score }}<br>
               Рейтинг: {{ rating }}<br>
               {% if is_shiki %}
-              <a class="{% if is_dark %}dark-{% endif %}black-href" href="https://{{ shiki_mirror }}/animes/{{ id }}">Ссылка шикимори</a><br>
-            {% endif %}
+                <a class="{% if is_dark %}dark-{% endif %}black-href" href="https://shikimori.one/animes/{{ id }}">Ссылка шикимори</a><br>
+              {% endif %}
               <br>
               <details><summary>Описание</summary>
                   <font size="4">{{ description }}</font>
@@ -86,25 +88,79 @@
         </tr></table></div>
       {% endif %}
       <hr>
+    <span title="Нет любимой озвучки в топе? Ты можешь предложить изменить топ в тг у разраба - @dgndnd">ℹ️</span>
       <h5>Выберите перевод: (Всего {{ translations|length }})</h5>
+
+{#    <code>#}
+{#        {{ translations }}#}
+{##}
+{#        {{ dtype }}#}
+{#        <br>#}
+{#        {{ cache_wasnt_used }}#}
+{#    </code>#}
       <table>
-      {% for translation in translations %}
-      <tr>
+      {% for translation in top_translations %}
+      <tr class="translations-table">
         <td width=100px>
           <font size="4">{{ translation.type }}</font>
         </td>
-        <td width=300px>
-          <font size="4"><a href="{{ series_count }}-{{ translation.id }}/" {% if is_dark %} class="dark-href"{% endif %}>{{ translation.name }}</a></font>
+        <td width=250px >
+          <font size="4"><p {% if is_dark %} class="dark-text"{% endif %} style="margin: auto;">{{ translation.name }}</p></font>
         </td>
         <td>
-          <font size="4"><a href="{{ series_count }}-{{ translation.id }}/watch-{% if series_count == 0 %}0{% else %}1{% endif %}/" {% if is_dark %} class="dark-href"{% endif %}>Смотреть онлайн</a></font>
+            <div class="copied" style="visibility: hidden;" >
+              <p class="alert">Запрашиваем ссылку!</p>
+            </div>
+          <font size="4">
+            {% if translation.series_count%}
+              {% for i in range(1, (translation.series_count+1)) %}
+                <button class="episode-number" value="{{ i }}" data-translation-id="{{ translation.id }}" data-shikimori-id="{{ id }}"><p {% if is_dark %} class="dark-text"{% endif %}>{{ i }}</p></button>
+              {% endfor %}
+
+            {% else %}
+            <button class="episode-number" value="0" data-translation-id="{{ translation.id }}" data-shikimori-id="{{ id }}"><p {% if is_dark %} class="dark-text"{% endif %}>0</p></button>
+            {% endif %}
+          </font>
         </td>
       </tr>
       {% endfor %}
       </table>
-      <br><br><br>
+    <br>
+    <details>
+    <summary>Остальные озвучки</summary>
+        <table>
+      {% for translation in etc_translations %}
+      <tr class="translations-table">
+        <td width=100px>
+          <font size="4">{{ translation.type }}</font>
+        </td>
+        <td width=250px >
+          <font size="4"><p {% if is_dark %} class="dark-text"{% endif %} style="margin: auto;">{{ translation.name }}</p></font>
+        </td>
+        <td>
+            <div class="copied" style="visibility: hidden;" >
+              <p class="alert">Запрашиваем ссылку!</p>
+            </div>
+          <font size="4">
+            {% if translation.series_count%}
+              {% for i in range(1, (translation.series_count+1)) %}
+                  <button class="episode-number" value="{{ i }}" data-translation-id="{{ translation.id }}" data-shikimori-id="{{ id }}" ><p {% if is_dark %} class="dark-text"{% endif %}>{{ i }}</p></button>
+              {% endfor %}
+
+            {% else %}
+            <button class="episode-number" value="0" data-translation-id="{{ translation.id }}" data-shikimori-id="{{ id }}"><p {% if is_dark %} class="dark-text"{% endif %}>0</p></button>
+            {% endif %}
+          </font>
+        </td>
+      </tr>
+      {% endfor %}
+      </table>
+    </details>
+      <br><br><br><br><br>
+
     </div>
     <!-- Скрипты Bootstrap 5 -->
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/copy_episode_link.js') }}"></script>
   </body>
 </html>

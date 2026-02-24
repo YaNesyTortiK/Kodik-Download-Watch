@@ -1,8 +1,12 @@
-from anime_parsers_ru import KodikParser, ShikimoriParser, errors
+from anime_parsers_ru import KodikParser, ShikimoriParser, errors, ShikimoriParserAsync
 import requests
 from time import sleep, time
 from cache import Cache
 import config
+import re
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 if config.USE_LXML:
     import lxml
@@ -12,11 +16,11 @@ USE_KODIK_SEARCH = False
 if config.KODIK_TOKEN is None:
     try:
         # Проверяем, может ли токен получить доступ к апи полностью
-        kodik_parser = KodikParser(token=KodikParser.get_token(), use_lxml=config.USE_LXML, validate_token=True)
+        kodik_parser = KodikParser(use_lxml=config.USE_LXML, validate_token=True)
     except errors.TokenError:
         print("Токен неверен для нескольких функций. Поиск будет происходить по шикимори.")
         # Если не может, то без валидации (поиск будет через шики)
-        kodik_parser = KodikParser(token=KodikParser.get_token(), use_lxml=config.USE_LXML, validate_token=False)
+        kodik_parser = KodikParser(use_lxml=config.USE_LXML, validate_token=False)
     else:
         # Если ошибки по токену нет, значит используем поиск по кодику
         USE_KODIK_SEARCH = True
@@ -26,22 +30,97 @@ else:
     kodik_parser = KodikParser(token=config.KODIK_TOKEN, use_lxml=config.USE_LXML, validate_token=True)
     USE_KODIK_SEARCH = True
 
-shiki_parser = ShikimoriParser(use_lxml=config.USE_LXML, mirror=config.SHIKIMORI_MIRROR)
+shiki_parser = ShikimoriParser(use_lxml=config.USE_LXML)
 
-def test_shiki():
-    try:
-        shiki_parser.anime_info(shiki_parser.link_by_id('z20'))
-    except (requests.exceptions.HTTPError, requests.exceptions.SSLError, requests.exceptions.Timeout, requests.exceptions.ReadTimeout) as ex:
-        raise Warning(f"Произошла ошибка соединения при проверке парсера Шикимори.\nПроверьте доступность сайта/зеркала.\nТекущий используемый домен: {shiki_parser._dmn}\n"\
-              f"Текст ошибки: {ex}")
-    except Exception as ex:
-        raise Warning(f"Произошла непредвиденная ошибка при проверка парсера Шикимори.\nТекст ошибки: \"{ex}\"")
+
+def get_seria_link(shikimori_id: str, seria_num: int, translation_id: str):
+    print(type(shikimori_id), shikimori_id)
+    print(type(seria_num), seria_num)
+    print(type(translation_id), translation_id)
+    
+    return kodik_parser.get_m3u8_playlist_link(
+        id=shikimori_id,
+        id_type="shikimori",
+        seria_num=seria_num,
+        translation_id=translation_id,
+        quality=720)
 
 def get_url_data(url: str, headers: dict = None, session=None):
     return requests.get(url, headers=headers).text
 
+# 'translations': [
+# {
+# 'id': id перевода/субтитров/озвучки
+# 'type': тип (voice/subtitles)
+# 'name': Имя автора озвучки/субтитров
+# },
+priority_order = [
+    "Дублированный",
+    "ТО Дубляжная",
+    "Studio Band",
+    "AniLiberty (AniLibria)",
+    "AniLibria.TV",
+    "JAM",
+    "Dream Cast",
+    "SHIZA Project",
+    "Reanimedia",
+    "AnimeVost"
+]
+
+# создаём словарь для быстрого поиска индекса приоритета
+priority_index = {name: i for i, name in enumerate(priority_order)}
+
+
+def sort_key(item):
+    name = item.get("name", "")
+    series_count = item.get("series_count", 0)
+    for p_name in priority_order:
+        if name.startswith(p_name):
+            priority = priority_index[p_name]
+            break
+    else:
+        priority = float('inf')
+    return (-series_count, priority, name)
+
+def format_translations(translations):
+    priority_list = []
+    normal_list = []
+    subs = []
+    for t in translations:
+        if t.get("type") != "Озвучка":
+            subs.append(t)
+            continue
+        name = t.get("name", "")
+        match = re.search(r'\((\d+)', t["name"])
+        t["series_count"] = int(match.group(1)) if match else 0
+        if any(name.startswith(p) for p in priority_order):
+            priority_list.append(t)
+        else:
+            normal_list.append(t)
+
+    priority_list.sort(key=sort_key)
+    normal_list.sort(key=sort_key)
+    subs.sort(key=sort_key)
+    return priority_list, normal_list, subs
+# пример использования
+
 def get_serial_info(id: str, id_type: str, token: str) -> dict:
-    return kodik_parser.get_info(id, id_type)
+    data = kodik_parser.get_info(id, id_type)
+    temp = data
+
+
+    try:
+        priority_list, normal_list, subs = format_translations(data["translations"])
+        data["translations"] = priority_list + normal_list + subs
+        data["top_translations"] = priority_list
+        data["etc_translations"] = normal_list + subs
+
+    except:
+        temp["top_translations"] = data
+        temp["etc_translations"] = []
+
+        return temp
+    return data
 
 def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str, token: str):
     return kodik_parser.get_link(id, id_type, seria_num, translation_id)[0]
@@ -148,7 +227,7 @@ def get_shiki_data(id: str, retries: int = 3):
             dyear = 1970
             description = 'Неизвестно'
     except errors.TooManyRequests:
-        # Сервер не допускает слишком частое обращение
+        # Сервер не допукает слишком частое обращение
         sleep(0.5)
         return get_shiki_data(id, retries=retries-1)
     except errors.NoResults:
@@ -189,14 +268,14 @@ def get_related(id: str, id_type: str, sequel_first: bool = False) -> list:
     for x in data:
         if x['date'] is None:
             x['date'] = 'Неизвестно'
-        if x['type'] in ['Манга', 'Ранобэ', 'Клип']:
+        if x['type'] in ['Манга', 'Ранобэ']:
             x['internal_link'] = x['url']
         else:
             sid = shiki_parser.id_by_link(x['url'])
             x['internal_link'] = f'/download/sh/{sid}/'
         res.append(x)
     if sequel_first:
-        return sorted(res, key=lambda x: 0 if x["relation"] == 'Продолжение' else (1 if x["relation"] == 'Предыстория' else 2))
+        return sorted(res, key=lambda x: 0 if x["relation"] == 'Продолжение' else 1)
     else:
         return res
 

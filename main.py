@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, abort, session, send_file, g
+from flask import Flask, render_template, request, redirect, abort, session, send_file, send_from_directory
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 from flask_mobility import Mobility
+from flask_httpauth import HTTPBasicAuth
 from getters import *
 from fast_download import clear_tmp, fast_download, get_path
 import watch_together
@@ -9,6 +10,20 @@ import config
 import os
 
 app = Flask(__name__)
+auth = HTTPBasicAuth()
+
+USERS = {
+    "user": "user",
+}
+
+@auth.verify_password
+def verify(username, password):
+    return USERS.get(username) == password
+
+@app.before_request
+@auth.login_required
+def protect_all():
+    pass
 Mobility(app)
 socketio = SocketIO(app)
 
@@ -30,13 +45,9 @@ watch_manager = watch_together.Manager(config.REMOVE_TIME)
 # Очистка tmp
 clear_tmp()
 
-# Проверка доступности шикимори
-test_shiki()
-
-
 @app.route('/')
 def index():
-    return render_template('index.html', is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_kodik_search=USE_KODIK_SEARCH)
+    return render_template('index.html', is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
 
 @app.route('/', methods=['POST'])
 def index_form():
@@ -65,15 +76,16 @@ def search_page(db, query):
         try:
             # Попытка получить данные с кодика
             s_data = get_search_data(query, token, ch if ch_save or ch_use else None)
-            return render_template('search.html', items=s_data[0], others=s_data[1], is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile, is_kodik_search=USE_KODIK_SEARCH)
+            return render_template('search.html', items=s_data[0], others=s_data[1], is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
         except:
-            return render_template('search.html', is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile, is_kodik_search=USE_KODIK_SEARCH)
+            return render_template('search.html', is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     else:
         # Другие базы не поддерживаются (возможно в будущем будут)
         return abort(400)
 
 @app.route('/download/<string:serv>/<string:id>/')
 def download_shiki_choose_translation(serv, id):
+    cache_wasnt_used = False
     if serv == "sh":
         if ch_use and ch.is_id("sh"+id) and ch.get_data_by_id("sh"+id)['serial_data'] != {}:
             serial_data = ch.get_data_by_id("sh"+id)['serial_data']
@@ -104,6 +116,7 @@ def download_shiki_choose_translation(serv, id):
                 # (При поиске по шики, выдаются картинки в урезанном качестве)
                 cache_used = True
         if not cache_used:
+            cache_wasnt_used = True
             try:
                 # Попытка получить данные с шики
                 data = get_shiki_data(id)
@@ -118,14 +131,8 @@ def download_shiki_choose_translation(serv, id):
                 description = data['description']
             except:
                 name = 'Неизвестно'
-                pic = config.IMAGE_NOT_FOUND
+                pic = config.IMAGE_AGE_RESTRICTED
                 score = 'Неизвестно'
-                dtype = 'Неизвестно'
-                date = 'Неизвестно'
-                status = 'Неизвестно'
-                rating = 'Неизвестно'
-                year = 'Неизвестно'
-                description = 'Неизвестно'
                 data = False
             finally:
                 if ch_save and not ch.is_id("sh"+id):
@@ -145,10 +152,14 @@ def download_shiki_choose_translation(serv, id):
         except:
             related = []
         return render_template('info.html', 
-            title=name, image=pic, score=score, translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
-            dtype=dtype, date=date, status=status, rating=rating, related=related, description=description, is_shiki=True,
-            is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile,
-            shiki_mirror=config.SHIKIMORI_MIRROR if config.SHIKIMORI_MIRROR else "shikimori.one")
+            title=name, image=pic, score=score,
+            translations=serial_data['translations'],
+            top_translations=serial_data['top_translations'],
+            etc_translations=serial_data['etc_translations'],
+            series_count=serial_data["series_count"], id=id,
+            dtype=dtype, date=date, status=status, rating=rating, related=related,
+            description=description, is_shiki=True, cache_wasnt_used=cache_wasnt_used,
+            is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     elif serv == "kp":
         try:
             # Получаем данные о наличии переводов от кодика
@@ -161,7 +172,7 @@ def download_shiki_choose_translation(serv, id):
         return render_template('info.html', 
             title="...", image=config.IMAGE_NOT_FOUND, score="...", translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
             dtype="...", date="...", status="...", description='...', is_shiki=False,
-            is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile)
+            is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     else:
         return abort(400)
 
@@ -170,7 +181,7 @@ def download_choose_seria(serv, id, data):
     data = data.split('-')
     series = int(data[0])
     return render_template('download.html', series=series, backlink=f"/download/{serv}/{id}/",
-                           is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile)
+                           is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
 
 @app.route('/download/<string:serv>/<string:id>/<string:data>/<string:download_type>-<string:quality>-<int:seria>/')
 def redirect_to_download(serv, id, data, download_type, quality, seria):
@@ -289,7 +300,7 @@ def watch(serv, id, data, seria, quality = "720", timing = 0):
             url=url, seria=seria, series=series, id=id, id_type=id_type, data="-".join(data), quality=quality, serv=serv, straight_url=straight_url,
             allow_watch_together=config.ALLOW_WATCH_TOGETHER,
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False,
-            timing=timing, title=title, is_mobile=g.is_mobile)
+            timing=timing, title=title)
     except:
         return abort(404)
 
@@ -379,7 +390,7 @@ def room(rid):
         return render_template('room.html',
             url=url, seria=seria, series=series, id=id, id_type=id_type, data=f"{series}-{translation_id}", quality=quality, serv=rd['serv'], straight_url=straight_url,
             start_time=rd['play_time'],
-            is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile)
+            is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     except:
         return abort(500)
 
@@ -470,7 +481,7 @@ def fast_download_prepare(id_type: str, id: str, seria_num: int, translation_id:
     return render_template('fast_download_prepare.html', seria_num=seria_num,
                            url=f'/fast_download_act/{id_type}-{id}-{seria_num}-{translation_id}-{quality}-{max_series}/',
                            past_url=request.referrer if request.referrer else f'/download/{id_type}/{id}/',
-                           is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile)
+                           is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
 
 # =======================================================================
 # Sockets ====================================
@@ -506,10 +517,23 @@ def resources(path: str):
     else:
         return abort(404)
 
+@app.route('/get_episode/<string:shikimori_id>/<int:seria_num>/<string:translation_id>')
+def get_episode(shikimori_id: str, seria_num: int, translation_id: str):
+    return get_seria_link(shikimori_id, seria_num, translation_id)
+
+@app.route('/guide')
+def guide():
+    return render_template('/guide.html')
+
+@app.route('/download')
+def download_file():
+    # Отправка файла клиенту
+    return send_from_directory("./static/", 'dgnmpv.zip', as_attachment=True)
+
 @app.route('/favicon.ico')
 def favicon():
     return send_file(config.FAVICON_PATH)
 
 if __name__ == "__main__":
-    socketio.run(app, host=config.HOST, port=config.PORT, debug=config.DEBUG)
+    socketio.run(app, host=config.HOST, port=config.PORT, debug=config.DEBUG, allow_unsafe_werkzeug=True)
     

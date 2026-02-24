@@ -6,6 +6,8 @@
     <title>Быстрая загрузка. Серия: {{ seria_num }}</title>
     <!-- Стили Bootstrap 5 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+
   </head>
   <body {% if is_dark %}class="dark-body"{% endif %}>
     <!-- Контент -->

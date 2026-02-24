@@ -1,7 +1,6 @@
-KODIK_TOKEN = None
-SHIKIMORI_MIRROR = "shiki.one" # Домен зеркало для shikimori. None = параметр из парсера по умолчанию
-APP_SECRET_KEY = "some_super_ultra_unbelievable_key"
-DEBUG = False # Debug от Flask
+KODIK_TOKEN = ""
+APP_SECRET_KEY = "some_super_secret_key"
+DEBUG = True # Debug от Flask
 SAVE_DATA = True # Для сохранения результатов парсинга (картинки, названия, ссылки на видео)
 USE_SAVED_DATA = True # Для использования уже сохранённых результатов
 SAVED_DATA_FILE = "cache.json" # Файл с сохранёнными данными (если SAVE_DATA == False и USE_SAVED_DATA == False, файл не обязателен)
@@ -13,20 +12,20 @@ ALLOW_WATCH_TOGETHER = True # Функция совместного просмо
 REMOVE_TIME = 5 # (В минутах) Через какое время не используемая комната для совместного просмотра будет удалена
         # Рекомендуется включить кеширование если, в противном случае для каждого пользователя видео будет искаться отдельно
 
-ALLOW_NSFW = True # Попытка обхода блокировки по возрасту от шикимори
+ALLOW_NSFW = False # Попытка обхода блокировки по возрасту от шикимори
 
 # "/" в начале обязательно
 IMAGE_NOT_FOUND = "/resources/no-image.png" # Картинка для замены ненайденной
 IMAGE_AGE_RESTRICTED = "/resources/age-restricted.png" # Картинка для обозначения контента с ограничениями по возрасту 
 
 # Путь к иконке
-FAVICON_PATH = "resources/favicon.ico"
+FAVICON_PATH = "resources/A.ico"
 
 # Адрес для доступа
 HOST = '0.0.0.0' # Такой адрес позволяет получить доступ как через 127.0.0.1, так и через локальный адрес компьютера (позволяет получить доступ к серверу с других устройств в сети)
 
 # Порт для доступа
-PORT = 5000
+PORT = 5555
 
 # Параметры парсинга
 USE_LXML = True # В некоторых случаях lxml может не работать, можно перейти на стандартный парсер от bs4 прописав False

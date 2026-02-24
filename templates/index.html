@@ -6,18 +6,20 @@
     <title>Поиск</title>
     <!-- Стили Bootstrap 5 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+
   </head>
   <body {% if is_dark %}class="dark-body"{% endif %}>
     <!-- Контент -->
     <form method="POST" action="/change_theme/" novalidate>
       <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position:absolute;top:1px">Сменить тему</button>
+      <h2 class="text-center mb-4"><a href="/guide">Гайд по установке mpv плеера на windows</a></h2>
     </form>
+    <div class="recently_watch">
+
+    </div>
     <div class="container mt-5">
-      {% if is_kodik_search %}
-        <h1 class="text-center mb-4">Поиск по Kodik</h1>
-      {% else %}
-        <h1 class="text-center mb-4">Поиск по Шикимори</h1>
-      {% endif %}
+      <h1 class="text-center mb-4">Поиск</h1>
       <form method="POST" novalidate>
         <div class="mb-3">
           <label for="original-url" class="form-label">Введите название</label>
@@ -41,7 +43,15 @@
         </form>
       </div>
     </div>
+    <p class="text-md-center">
+        Для нормального отображения картинок надо добавить в VPN/zapret
+        <code>
+            domain:shiki.one,
+            domain:shikimori.one
+        </code>
+    </p>
     <!-- Скрипты Bootstrap 5 -->
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/display_recently.js') }}"></script>
   </body>
 </html>

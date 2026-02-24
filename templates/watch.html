@@ -6,6 +6,7 @@
     <title>{% if title %}{{ title }} - {% endif %}Серия {{ seria }}</title>
     <!-- Стили Bootstrap 5 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
   </head>
   <body {% if is_dark %}class="dark-body"{% endif %}>
     <!-- Контент -->
@@ -35,22 +36,10 @@
             </table>
           </td>
           <td>
-            {% if is_mobile %}
-              <div>
-                <div style="display: flex; justify-content: center; text-align: center;">
-                  Перемотка на 1:20
-                </div>
-                <div style="display: flex; justify-content: center;">
-                  <button id="skip_left" class="btn {% if is_dark %}dark-{% endif %}btn-primary" style="display: inline; width: 50%;" onclick="skip_left();">&lt;</button>
-                  <button id="skip_right" class="btn {% if is_dark %}dark-{% endif %}btn-primary" style="display: inline; width: 50%;" onclick="skip_right();">&gt;</button>
-                </div>
-              </div>
-            {% else %}
-              <table align='right'>
-                <td><button id="skip_left" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_left();">Назад на 1:20</button></td>
-                <td><button id="skip_right" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_right();">Вперед на 1:20</button></td>
-              </table>
-            {% endif %}
+            <table align='right'>
+              <td><button id="skip_left" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_left();">Назад на 1:20</button></td>
+              <td><button id="skip_right" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_right();">Вперед на 1:20</button></td>
+            </table>
           </td>
         </tr>
       </table>
@@ -67,7 +56,6 @@
         </div>
       </form>
       {% endif %}
-      <p>Текущее качество видео: {{ quality }}<br>Изменить: <a href='q-720/'{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href='q-480/'{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href='q-360/'{% if is_dark %} class="dark-href"{% endif %}>360</a></p>
       <p>
         <table>
           <tr>
@@ -90,10 +78,6 @@
         <input id="link_container">
         <div id="qr_code_container"><div id='qr_code'></div></div>
       </div>
-      <p>
-        <a href='{{ url }}/'{% if is_dark %} class="dark-href"{% endif %}>Скачать эту серию</a>
-        (<a href='{{ straight_url }}/'{% if is_dark %} class="dark-href"{% endif %}>Прямая ссылка</a>)
-      </p>
       <p>Если у вас не найден плеер или не получается скачать, попробуйте сменить качество.</p>
       <button class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position: relative;" onclick="document.location.replace(`/download/${page_data['serv']}/${page_data['id']}/`)">Вернуться на страницу тайтла</button>
     </div>
