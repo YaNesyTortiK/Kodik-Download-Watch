@@ -430,7 +430,6 @@ def change_room_quality(rid, quality):
 @app.route('/fast_download_act/<string:id_type>-<string:id>-<int:seria_num>-<string:translation_id>-<string:quality>/')
 @app.route('/fast_download_act/<string:id_type>-<string:id>-<int:seria_num>-<string:translation_id>-<string:quality>-<int:max_series>/')
 def fast_download_work(id_type: str, id: str, seria_num: int, translation_id: str, quality: str, max_series: int = 12):
-    from fast_download import fast_download, get_path
     translation = translations[translation_id] if translation_id in translations else "Неизвестно"
     add_zeros = len(str(max_series))
     if config.USE_SAVED_DATA and ch.is_id('sh'+id):
