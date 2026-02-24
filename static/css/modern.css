@@ -1,0 +1,183 @@
+:root {
+    --bg-color: hsl(240, 10%, 4%);
+    --surface-glass: hsla(240, 5%, 8%, 0.6);
+    --surface-glass-border: hsla(240, 5%, 20%, 0.3);
+    --primary-color: hsl(264, 82%, 60%);
+    --primary-glow: hsla(264, 82%, 60%, 0.4);
+    --accent-color: hsl(190, 100%, 50%);
+    --text-main: hsl(210, 15%, 95%);
+    --text-muted: hsl(210, 10%, 70%);
+    --glass-blur: blur(12px);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-light {
+    --bg-color: hsl(210, 20%, 98%);
+    --surface-glass: hsla(210, 20%, 90%, 0.7);
+    --surface-glass-border: hsla(210, 20%, 70%, 0.3);
+    --text-main: hsl(240, 10%, 10%);
+    --text-muted: hsl(240, 5%, 40%);
+    --primary-glow: hsla(264, 82%, 60%, 0.2);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+    background-image: 
+        radial-gradient(circle at 10% 20%, hsla(264, 82%, 15%, 0.1) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, hsla(190, 100%, 10%, 0.1) 0%, transparent 40%);
+    min-height: 100vh;
+}
+
+.theme-light body {
+    background-image: 
+        radial-gradient(circle at 10% 20%, hsla(264, 82%, 95%, 0.5) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, hsla(190, 100%, 95%, 0.5) 0%, transparent 40%);
+}
+
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: var(--transition-smooth);
+}
+
+a:hover {
+    color: var(--accent-color);
+}
+
+.glass-card {
+    background: var(--surface-glass);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--surface-glass-border);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.btn-modern {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px var(--primary-glow);
+    background: hsl(264, 82%, 65%);
+}
+
+.btn-secondary {
+    background: var(--surface-glass);
+    border: 1px solid var(--surface-glass-border);
+    color: var(--text-main);
+}
+
+.btn-secondary:hover {
+    background: hsla(240, 5%, 20%, 0.5);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.nav-bar {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg-color);
+    opacity: 0.95;
+    backdrop-filter: blur(10px);
+}
+
+.search-input-modern {
+    background: var(--surface-glass);
+    border: 1px solid var(--surface-glass-border);
+    border-radius: 12px;
+    padding: 12px 20px;
+    color: var(--text-main);
+    width: 100%;
+    outline: none;
+    transition: var(--transition-smooth);
+}
+
+.search-input-modern:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-glow);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+/* Toggle Switch */
+.switch-modern {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+.switch-modern input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.slider-modern {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--surface-glass);
+    border: 1px solid var(--surface-glass-border);
+    transition: .4s;
+    border-radius: 24px;
+}
+.slider-modern:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 3px;
+    background-color: var(--text-muted);
+    transition: .4s;
+    border-radius: 50%;
+}
+input:checked + .slider-modern {
+    background-color: var(--primary-glow);
+    border-color: var(--primary-color);
+}
+input:checked + .slider-modern:before {
+    transform: translateX(20px);
+    background-color: var(--primary-color);
+    box-shadow: 0 0 10px var(--primary-glow);
+}

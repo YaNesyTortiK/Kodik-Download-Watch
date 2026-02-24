@@ -1,30 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Быстрая загрузка. Серия: {{ seria_num }}</title>
-    <!-- Стили Bootstrap 5 -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+{% extends "base.html" %}
 
-  </head>
-  <body {% if is_dark %}class="dark-body"{% endif %}>
-    <!-- Контент -->
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">Пожалуйста подождите</h1>
-        <p class="text-center mb-4">Выполняется предзагрузка видео, скачивание начнется автоматически...</p>
-        <p class="text-center mb-4">Номер загружаемой серии: {{ seria_num }}</p>
-        <p class="text-center mb-4">Процесс должен занять около 20-30 секунд для 25 минутной серии и около 2-3 минут для 1.5 часового фильма. Если возникнет ошибка о превышении времени ожидания, подождите минуту и перезагрузите эту страницу.</p>
-        <div width="100%" style="text-align: center;">
-            <button class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" onclick="window.location.replace(past_url)">Вернуться назад (после того как завершится загрузка)</button>
+{% block title %}Быстрая загрузка: {{ seria_num }}{% endblock %}
+
+{% block content %}
+<div class="fade-in" style="max-width: 600px; margin: 100px auto; text-align: center;">
+    <div class="glass-card" style="padding: 40px;">
+        <div class="loader-ring" style="margin-bottom: 30px;">
+            <!-- Simple CSS Loader could be added here if needed, or just text -->
+            <div style="font-size: 3rem; margin-bottom: 10px;">⏳</div>
         </div>
+        
+        <h1 style="margin-bottom: 20px;">Пожалуйста, подождите</h1>
+        <p style="margin-bottom: 30px; color: var(--text-muted);">
+            Выполняется предзагрузка серии <b>№{{ seria_num }}</b>. 
+            Скачивание начнется автоматически.
+        </p>
+        
+        <div style="background: var(--primary-glow); padding: 15px; border-radius: 12px; margin-bottom: 30px; font-size: 0.9rem;">
+            Процесс занимает 20-30 сек для серии и 2-3 мин для фильма. 
+            Если возникнет ошибка времени ожидания — перезагрузите страницу.
+        </p>
+        
+        <button class="btn-modern btn-secondary" onclick="window.location.replace(past_url)">
+            Вернуться назад
+        </button>
     </div>
-    <!-- Скрипты Bootstrap 5 -->
-    <script>
-        past_url = "{{ past_url }}"
-        window.location.replace('{{ url }}')
-    </script>
-    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-  </body>
-</html>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const past_url = "{{ past_url }}";
+    // Даем небольшую задержку перед переходом, чтобы пользователь успел прочитать
+    setTimeout(() => {
+        window.location.replace('{{ url }}');
+    }, 1000);
+</script>
+{% endblock %}

@@ -158,7 +158,7 @@ def download_shiki_choose_translation(serv, id):
             etc_translations=serial_data['etc_translations'],
             series_count=serial_data["series_count"], id=id,
             dtype=dtype, date=date, status=status, rating=rating, related=related,
-            description=description, is_shiki=True, cache_wasnt_used=cache_wasnt_used,
+            description=description, is_shiki=True, cache_wasnt_used=cache_wasnt_used, serv=serv,
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     elif serv == "kp":
         try:
@@ -171,7 +171,7 @@ def download_shiki_choose_translation(serv, id):
             """
         return render_template('info.html', 
             title="...", image=config.IMAGE_NOT_FOUND, score="...", translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
-            dtype="...", date="...", status="...", description='...', is_shiki=False,
+            dtype="...", date="...", status="...", description='...', is_shiki=False, serv=serv,
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     else:
         return abort(400)
@@ -523,7 +523,7 @@ def get_episode(shikimori_id: str, seria_num: int, translation_id: str):
 
 @app.route('/guide')
 def guide():
-    return render_template('/guide.html')
+    return render_template('guide.html', is_dark=session.get('is_dark', False))
 
 @app.route('/download')
 def download_file():
