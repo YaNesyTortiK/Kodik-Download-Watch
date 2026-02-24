@@ -142,11 +142,17 @@
     </div>
 
     <!-- Область QR-кода -->
-    <div id="timing_link_div" class="glass-card" style="display: none;">
-        <p style="margin-bottom: 15px; font-weight: 500;">Ссылка с текущим таймингом:</p>
-        <input id="link_container" class="search-input-modern" readonly style="margin-bottom: 20px; text-align: center;">
-        <div id="qr_code_container">
-            <div id="qr_code"></div>
+    <!-- QR/Timing Modal -->
+    <div id="timing_modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('timing_modal')">&times;</span>
+            <h3 style="margin-bottom: 20px;">Поделиться моментом</h3>
+            <p style="margin-bottom: 15px; font-size: 0.9rem; color: var(--text-muted);">Ссылка с текущим таймингом:</p>
+            <input id="link_container" class="search-input-modern" readonly style="margin-bottom: 20px; text-align: center; width: 100%;">
+            <div id="qr_code_container" style="background: white; padding: 15px; border-radius: 12px; display: inline-block; margin-bottom: 15px;">
+                <div id="qr_code"></div>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">Отсканируйте, чтобы продолжить просмотр на другом устройстве</p>
         </div>
     </div>
 </div>
@@ -175,9 +181,11 @@
 <script>
     const video = document.getElementById("v-player");
     const page_data = JSON.parse(document.getElementById('data-holder').innerText);
-    const timing_link_div = document.getElementById('timing_link_div');
-    const create_qr_btn = document.getElementById('create_qr_btn');
     let qrCode;
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
 
     video.focus();
 
@@ -220,10 +228,10 @@
         }
     });
 
-    create_qr_btn.addEventListener("click", function () {
+    document.getElementById('create_qr_btn').addEventListener("click", function () {
+        const modal = document.getElementById('timing_modal');
         const cur_dur = Math.trunc(video.currentTime);
         const url = new URL(window.location.origin + window.location.pathname);
-        // Формируем чистую ссылку с таймингом
         const loc = `${window.location.origin}/watch/${page_data.serv}/${page_data.id}/${page_data.data}/${page_data.seria}/${page_data.cur_quality}/${cur_dur}/`;
         
         document.getElementById('link_container').value = loc;
@@ -241,8 +249,12 @@
             qrCode.makeCode(loc);
         }
         
-        timing_link_div.style.display = 'block';
-        timing_link_div.scrollIntoView({ behavior: 'smooth' });
+        modal.classList.add('active');
+        
+        // Закрытие по клику вне контента
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal('timing_modal');
+        });
     });
 </script>
 {% endblock %}

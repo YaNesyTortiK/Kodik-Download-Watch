@@ -107,10 +107,13 @@
         </div>
     </div>
 
-    <div id="qr_code_container" style="display: none; justify-content: center; margin-bottom: 30px;">
-        <div class="glass-card" style="padding: 20px; text-align: center;">
-            <div id="qr_code" style="background: white; padding: 10px; border-radius: 8px; display: inline-block;"></div>
-            <p style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">Сканируйте для входа с другого устройства</p>
+    <!-- QR Modal -->
+    <div id="qr_modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('qr_modal')">&times;</span>
+            <h3 style="margin-bottom: 20px;">QR Код комнаты</h3>
+            <div id="qr_code" style="background: white; padding: 15px; border-radius: 12px; display: inline-block; margin-bottom: 15px;"></div>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Сканируйте для входа с другого устройства</p>
         </div>
     </div>
 
@@ -128,9 +131,19 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
 <script src="{{ url_for('static', filename='js/room_funcs.js') }}"></script>
 <script>
-    // Показ контейнера QR кода при создании
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
+
+    // Показ контейнера QR кода
     document.querySelector('.create_qr').addEventListener('click', () => {
-        document.getElementById('qr_code_container').style.display = 'flex';
+        const modal = document.getElementById('qr_modal');
+        modal.classList.add('active');
+        
+        // Закрытие по клику вне контента
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal('qr_modal');
+        });
     });
 </script>
 {% endblock %}

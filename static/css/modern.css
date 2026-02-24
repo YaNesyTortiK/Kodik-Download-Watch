@@ -181,3 +181,46 @@ input:checked + .slider-modern:before {
     background-color: var(--primary-color);
     box-shadow: 0 0 10px var(--primary-glow);
 }
+
+/* Modal System */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    transition: var(--transition-smooth);
+}
+.modal-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+.modal-content {
+    background: var(--surface-glass);
+    border: 1px solid var(--surface-glass-border);
+    padding: 30px;
+    border-radius: 20px;
+    position: relative;
+    max-width: 90%;
+    transform: scale(0.9);
+    transition: var(--transition-smooth);
+    text-align: center;
+}
+.modal-overlay.active .modal-content {
+    transform: scale(1);
+}
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: var(--text-muted);
+}
+.modal-close:hover {
+    color: var(--primary-color);
+}
