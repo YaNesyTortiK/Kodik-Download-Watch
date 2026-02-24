@@ -13,7 +13,7 @@ if config.USE_LXML:
 
 USE_KODIK_SEARCH = False
 
-if not config.KODIK_TOKEN:
+if config.KODIK_TOKEN is None:
     try:
         # Проверяем, может ли токен получить доступ к апи полностью
         kodik_parser = KodikParser(use_lxml=config.USE_LXML, validate_token=True)

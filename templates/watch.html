@@ -1,260 +1,209 @@
-{% extends "base.html" %}
-
-{% block title %}{% if title %}{{ title }} - {% endif %}Серия {{ seria }}{% endblock %}
-
-{% block head %}
-<style>
-    .player-section {
-        margin-top: 30px;
-        position: relative;
-    }
-    video {
-        width: 100%;
-        border-radius: 12px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-        background: black;
-        aspect-ratio: 16/9;
-    }
-    .player-controls {
-        margin-top: 25px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-    .main-controls {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
-    .button-group {
-        display: flex;
-        gap: 10px;
-    }
-    .skip-btn {
-        background: var(--surface-glass);
-        border: 1px solid var(--surface-glass-border);
-        min-width: 100px;
-    }
-    .secondary-controls {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 20px;
-        margin-top: 10px;
-    }
-    .jump-form {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-    .jump-input {
-        width: 80px;
-        text-align: center;
-    }
-    #timing_link_div {
-        margin-top: 20px;
-        padding: 20px;
-        text-align: center;
-    }
-    #qr_code_container {
-        margin: 20px auto 0;
-        background: white;
-        padding: 15px;
-        border-radius: 12px;
-        display: inline-flex;
-    }
-    .episode-info {
-        margin-bottom: 20px;
-        color: var(--text-muted);
-    }
-    .episode-info h1 {
-        color: var(--text-main);
-        margin-bottom: 5px;
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="player-section fade-in">
-    <div class="episode-info">
-        <h1>Серия {{ seria }} <span style="font-size: 1.2rem; color: var(--primary-color);">/ {{ series }}</span></h1>
-        {% if title %}<p>{{ title }}</p>{% endif %}
-    </div>
-
-    <video id="v-player" controls="controls" autoplay>
-        <source src="{{ straight_url }}" type="video/mp4">
-    </video>
-
-    <div class="player-controls">
-        <!-- Основная навигация -->
-        <div class="main-controls">
-            <div class="button-group">
-                {% if seria > 1 %}
-                <a id="previous_seria_a" href="/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria-1 }}/{{ quality }}/">
-                    <button class="btn-modern btn-secondary">← Пред. серия</button>
-                </a>
-                {% endif %}
-                {% if seria < series %}
-                <a id="next_seria_a" href="/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria+1 }}/{{ quality }}/">
-                    <button class="btn-modern">След. серия →</button>
-                </a>
-                {% endif %}
-            </div>
-
-            <div class="button-group">
-                <button id="skip_left" class="btn-modern btn-secondary skip-btn" onclick="skip_left();">- 1:20</button>
-                <button id="skip_right" class="btn-modern btn-secondary skip-btn" onclick="skip_right();">+ 1:20</button>
-            </div>
-            
-            <div class="button-group">
-                <a href="/">
-                    <button class="btn-modern">🏠 Главная</button>
-                </a>
-                <a href="/download/{{ serv }}/{{ id }}/">
-                    <button class="btn-modern btn-secondary">К описанию</button>
-                </a>
-            </div>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if title %}{{ title }} - {% endif %}Серия {{ seria }}</title>
+    <!-- Стили Bootstrap 5 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+  </head>
+  <body {% if is_dark %}class="dark-body"{% endif %}>
+    <!-- Контент -->
+    <table>
+      <tr>
+        <td><a href='/'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">На главную</button></a></td>
+        <td><form method="POST" action="/change_theme/" novalidate>
+            <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position:absolute;top:1px">Сменить тему</button>
+        </form></td>
+      </tr>
+    </table>
+    <div class="container mt-5">
+      <h1>Серия {{ seria }} / {{ series }}</h1>
+      <video controls="controls" width="100%" autoplay>
+        <source src="{{ straight_url }}" type='video/mp4'>
+      </video>
+      <table width="100%">
+        <tr>
+          <td>
+            <table>
+              {% if seria > 1 %}
+                <td><a id="previous_seria_a" href='/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria-1 }}/{{ quality }}/'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">Предыдущая серия</button></a></td>
+              {% endif %}
+              {% if seria < series %}
+                <td><a id="next_seria_a" href='/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria+1 }}/{{ quality }}/'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">Следующая серия</button></a></td>
+              {% endif %}
+            </table>
+          </td>
+          <td>
+            <table align='right'>
+              <td><button id="skip_left" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_left();">Назад на 1:20</button></td>
+              <td><button id="skip_right" class="btn {% if is_dark %}dark-{% endif %}btn-primary" onclick="skip_right();">Вперед на 1:20</button></td>
+            </table>
+          </td>
+        </tr>
+      </table>
+      {% if seria > 0 %}
+      <form method="POST" novalidate>
+        <div class="mb-3">
+        <label for="choose_seria_num" class="form-label">Введите номер серии (1-{{ data[:data.find("-")] }}):</label>
+        <table style="position:relative; top:-15px">
+          <tr>
+            <td><input id="choose_seria_num" name="seria" required autocomplete=off cols="10" maxlength='80' class="{% if is_dark %}dark-{% endif %}form-control" style="width: 100px;"></td>
+            <td><button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position: relative; top:8px">Перейти</button></td>
+          </tr>
+        </table>
         </div>
-
-        <!-- Дополнительные функции -->
-        <div class="secondary-controls">
-            <!-- Перейти к серии -->
-            <div class="glass-card" style="padding: 15px;">
-                <form method="POST" novalidate class="jump-form">
-                    <label for="choose_seria_num" style="font-size: 0.9rem;">Перейти к серии:</label>
-                    <input id="choose_seria_num" name="seria" class="search-input-modern jump-input" placeholder="№" required>
-                    <button type="submit" class="btn-modern" style="padding: 8px 16px;">Go</button>
-                </form>
-            </div>
-
-            <!-- Вместе / QR -->
-            <div class="glass-card" style="padding: 15px; display: flex; gap: 10px;">
-                {% if allow_watch_together %}
-                <form action="/create_room/" method="POST" style="margin: 0; flex: 1;">
-                    <button type="submit" class="btn-modern" style="width: 100%; white-space: nowrap;">👥 Смотреть вместе</button>
-                </form>
-                {% endif %}
-                <button id="mpv_btn_watch" class="btn-modern btn-secondary" style="flex: 1;">🖥️ Открыть в MPV</button>
-                <button id="create_qr_btn" class="btn-modern btn-secondary" style="flex: 1;">📱 QR</button>
-            </div>
-        </div>
+      </form>
+      {% endif %}
+      <p>
+        <table>
+          <tr>
+            {% if allow_watch_together %}
+            <td>
+              <form action='/create_room/' method="POST" novalidate>
+                <div class="mb-3">
+                  <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position: relative; top:8px">Смотреть вместе</button>
+                </div>
+              </form>
+            </td>
+            {% endif %}
+            <td>
+              <button id="create_qr_btn" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position: relative;">Ссылка с таймингом</button>
+            </td>
+          </tr>
+        </table>
+      </p>
+      <div id="timing_link_div" style="display: none; padding-bottom: 30px;">
+        <input id="link_container">
+        <div id="qr_code_container"><div id='qr_code'></div></div>
+      </div>
+      <p>Если у вас не найден плеер или не получается скачать, попробуйте сменить качество.</p>
+      <button class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position: relative;" onclick="document.location.replace(`/download/${page_data['serv']}/${page_data['id']}/`)">Вернуться на страницу тайтла</button>
     </div>
-
-    <!-- Область QR-кода -->
-    <!-- QR/Timing Modal -->
-    <div id="timing_modal" class="modal-overlay">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeModal('timing_modal')">&times;</span>
-            <h3 style="margin-bottom: 20px;">Поделиться моментом</h3>
-            <p style="margin-bottom: 15px; font-size: 0.9rem; color: var(--text-muted);">Ссылка с текущим таймингом:</p>
-            <input id="link_container" class="search-input-modern" readonly style="margin-bottom: 20px; text-align: center; width: 100%;">
-            <div id="qr_code_container" style="background: white; padding: 15px; border-radius: 12px; display: inline-block; margin-bottom: 15px;">
-                <div id="qr_code"></div>
-            </div>
-            <p style="font-size: 0.8rem; color: var(--text-muted);">Отсканируйте, чтобы продолжить просмотр на другом устройстве</p>
-        </div>
-    </div>
-</div>
-
-<div style="margin-top: 40px; text-align: center; color: var(--text-muted); font-size: 0.9rem;" class="fade-in">
-    <p>💡 Горячие клавиши: <b>F</b> (экран), <b>M</b> (звук), <b>A/D</b> (скип), <b>J/L</b> (серии)</p>
-</div>
-
-<!-- Скрытые данные для JS -->
-<div style="display: none" id="data-holder">
-    {
+    <!-- Скрипты генерации qr кода -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Собираем данные в json подобное -->
+    <div style="display: none" id="data-holder">
+      {
         "cur_ser": {{seria}},
         "max_ser": {{series}},
-        "cur_quality": "{{quality}}",
+        "cur_quality": {{quality}},
         "timing": {{timing}},
         "serv": "{{serv}}",
         "id": "{{id}}",
         "data": "{{data}}",
         "seria": "{{seria}}"
-    }
-</div>
-{% endblock %}
+      }
+    </div>
+    <!-- Скрипты Bootstrap 5 -->
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
 
-{% block scripts %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script>
-    const video = document.getElementById("v-player");
-    const page_data = JSON.parse(document.getElementById('data-holder').innerText);
-    let qrCode;
+    <script>
+      const video = document.querySelector("video");
+      const page_data = JSON.parse(document.getElementById('data-holder').innerText)
+      const timing_link_div = document.getElementById('timing_link_div')
+      const create_qr_btn = document.getElementById('create_qr_btn')
+      let qrCode;
 
-    function closeModal(id) {
-        document.getElementById(id).classList.remove('active');
-    }
+      // Авто-фокус на видео плеере
+      video.focus()
 
-    video.focus();
-
-    if (page_data.timing > 0) {
-        video.currentTime = page_data.timing;
-    }
-    
-    function skip_left() {
-        video.currentTime = Math.max(video.currentTime - 80, 0);
-    }
-    
-    function skip_right() {
-        video.currentTime = Math.min(video.currentTime + 80, video.duration);
-    }
-
-    document.addEventListener('keydown', function(event) {
-        // Игнорируем если фокус в инпуте
-        if (event.target.tagName === 'INPUT') return;
-
-        const key = event.key.toLowerCase();
-        
-        if (key === 'f' || key === 'а') {
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-            } else {
-                video.requestFullscreen();
-            }
-        } else if (key === 'm' || key === 'ь') {
-            video.muted = !video.muted;
-        } else if (key === 'd' || key === 'в') {
-            skip_right();
-        } else if (key === 'a' || key === 'ф') {
-            skip_left();
-        } else if (key === 'l' || key === 'д') {
-            const nextBtn = document.getElementById('next_seria_a');
-            if (nextBtn) window.location.href = nextBtn.href;
-        } else if (key === 'j' || key === 'о') {
-            const prevBtn = document.getElementById('previous_seria_a');
-            if (prevBtn) window.location.href = prevBtn.href;
-        }
-    });
-
-    document.getElementById('create_qr_btn').addEventListener("click", function () {
-        const modal = document.getElementById('timing_modal');
-        const cur_dur = Math.trunc(video.currentTime);
-        const url = new URL(window.location.origin + window.location.pathname);
-        const loc = `${window.location.origin}/watch/${page_data.serv}/${page_data.id}/${page_data.data}/${page_data.seria}/${page_data.cur_quality}/${cur_dur}/`;
-        
-        document.getElementById('link_container').value = loc;
-        
-        if (!qrCode) {
-            qrCode = new QRCode("qr_code", {
-                text: loc,
-                width: 256,
-                height: 256,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H,
-            });
+      if (page_data['timing'] > 0) {
+        video.currentTime = page_data['timing'];
+      }
+      
+      function skip_left() {
+        if (video.currentTime - 80 > 0) {
+          video.currentTime = video.currentTime-80
         } else {
-            qrCode.makeCode(loc);
+          video.currentTime = 0
         }
-        
-        modal.classList.add('active');
-        
-        // Закрытие по клику вне контента
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal('timing_modal');
-        });
-    });
-</script>
-{% endblock %}
+      };
+      function skip_right() {
+        if (video.currentTime + 80 < video.duration) {
+          video.currentTime = video.currentTime+80
+        } else {
+          video.currentTime = video.duration
+        }
+      };
+      document.addEventListener('keydown', function(event) {
+        if (event.key == 'f' || event.key == 'а') {
+          if (!cancelFullscreen()) {
+            launchFullScreen(video)
+          }
+        } else if (event.key == 'm' || event.key == 'ь') {
+          if (video.muted) {
+            video.muted = false
+          } else {
+            video.muted = true
+          }
+        } else if (event.key == 'd' || event.key == 'в') {
+          skip_right()
+        } else if (event.key == 'a' || event.key == 'ф') {
+          skip_left()
+        } else if (event.key == 'l' || event.key == 'д') {
+          if (page_data['cur_ser'] < page_data['max_ser']) {
+            const href_next = document.getElementById('next_seria_a').href
+            document.location.replace(href_next)
+          }
+        } else if (event.key == 'j' || event.key == 'о') {
+          if (page_data['cur_ser'] > 1) {
+            const href_next = document.getElementById('previous_seria_a').href
+            document.location.replace(href_next)
+          }
+        }
+      });
+
+      function launchFullScreen(element) {
+        if(element.requestFullScreen) {
+          element.requestFullScreen();
+        } else if(element.mozRequestFullScreen) {
+          element.mozRequestFullScreen();
+        } else if(element.webkitRequestFullScreen) {
+          element.webkitRequestFullScreen();
+        }
+      }
+
+      function cancelFullscreen() {
+        if(document.cancelFullScreen) {
+          document.cancelFullScreen();
+        } else if(document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if(document.webkitCancelFullScreen) {
+          document.webkitCancelFullScreen();
+        }
+      }
+
+      function generateQrCode(qrContent) {
+          return new QRCode("qr_code", {
+              text: qrContent,
+              width: 256,
+              height: 256,
+              colorDark: "#000000",
+              colorLight: "#ffffff",
+              correctLevel: QRCode.CorrectLevel.H,
+          });
+      }
+
+      create_qr_btn.addEventListener("click", function (event) {
+          const cur_dur = Math.trunc(video.currentTime)
+          let loc;
+          if (document.location.port) {
+            loc = document.location.protocol + '//' + document.location.hostname + ":" + document.location.port + '/watch/' + page_data['serv'] + '/' + page_data['id'] + '/' + page_data['data'] + '/' + page_data['seria'] + '/' + page_data['cur_quality'] + '/' + cur_dur + "/"
+          } else {
+            loc = document.location.protocol + '//' + document.location.hostname + '/watch/' + page_data['serv'] + '/' + page_data['id'] + '/' + page_data['data'] + '/' + page_data['seria'] + '/' + page_data['cur_quality'] + '/' + cur_dur + "/"
+          }
+          if (qrCode == null) {
+              qrCode = generateQrCode(loc);
+          } else {
+              qrCode.makeCode(loc);
+          }
+          timing_link_div.style.display = ''
+          document.getElementById('link_container').value = loc
+          document.getElementById("qr_code_container").style = "background-color: white; height: 300px; width: 300px; display: flex; align-items: center;justify-content: center;"
+      });
+
+    </script>
+  </body>
+</html>

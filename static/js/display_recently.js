@@ -1,24 +1,28 @@
-let container = document.querySelector(".recently_watch");
+let container = document.getElementsByClassName("recently_watch")[0]
 let data = JSON.parse(localStorage.getItem("recently_watched") || "[]");
+let domain = window.location.hostname
+let style = document.body.classList.contains("dark-body") ? "dark-href" : "mb-3"
+console.log(style)
 
-if (data.length === 0) {
-    container.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1; text-align: center;">У вас пока нет просмотренных аниме.</p>';
-}
-
-for (let item of data) {
+for (let item of data){
     let card = document.createElement("a");
     card.classList.add("card");
-    card.href = `/download/sh/${item[0]}/`;
+    card.classList.add(style);
+    card.href = `https://${domain}/download/sh/${item[0]}`
 
+    // создаём img
     let img = document.createElement("img");
     img.src = item[2];
-    img.loading = "lazy";
 
-    let textWrap = document.createElement("div");
+    // создаём текстовый элемент
     let text = document.createElement("h6");
     text.textContent = item[1];
 
+
+    // собираем структуру
     card.appendChild(img);
     card.appendChild(text);
+
+    // вставляем в контейнер
     container.appendChild(card);
 }

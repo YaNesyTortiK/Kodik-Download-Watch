@@ -1,88 +1,94 @@
-let episodeButtons = document.getElementsByClassName("episode-number");
-let autoMpvToggle = document.getElementById("auto_mpv_toggle");
-let shikimori_id = episodeButtons.length > 0 ? episodeButtons[0].getAttribute("data-shikimori-id") : null;
+let numbers = document.getElementsByClassName("episode-number")
+let shikimori_id = numbers[0].getAttribute("data-shikimori-id")
 
-// Инициализация тумблера
-if (autoMpvToggle) {
-    const isAuto = localStorage.getItem("autoMPV") === "true";
-    autoMpvToggle.checked = isAuto;
-    autoMpvToggle.addEventListener("change", (e) => {
-        localStorage.setItem("autoMPV", e.target.checked);
-    });
+
+for (let item of numbers){
+
+    item.addEventListener("click", fetchAndCopy)
 }
+load_last_watched(shikimori_id)
 
-// Слушатель для кнопок серий
-for (let item of episodeButtons) {
-    item.addEventListener("click", (e) => {
-        const isAuto = localStorage.getItem("autoMPV") === "true";
-        if (isAuto) {
-            fetchAndOpenMPV(e);
-        } else {
-            window.location.href = item.getAttribute("data-web-url");
-        }
-    });
-}
-
-if (shikimori_id) {
-    load_last_watched(shikimori_id);
-}
-
-async function fetchAndOpenMPV(event) {
-    const episode = event.currentTarget;
-    const notification = document.getElementById("copy-notification");
-    
+async function fetchAndCopy() {
     try {
-        if (notification) showNotification(notification, "Запрашиваем ссылку...", 5000);
-        
-        const shikimori_id = episode.getAttribute("data-shikimori-id");
-        const translation_id = episode.getAttribute("data-translation-id");
-        const ep_value = episode.value;
-
-        const response = await fetch(`/get_episode/${shikimori_id}/${ep_value}/${translation_id}`);
+        let episode = event.currentTarget;
+        let copy_alert = episode.parentElement.parentElement.getElementsByClassName("copied")[0]
+        fadeOut(copy_alert,"Запрашиваем ссылку!", 50000);
+        let shikimori_id = episode.getAttribute("data-shikimori-id")
+        console.log(copy_alert)
+        let translation_id = episode.getAttribute("data-translation-id")
+        // Отправляем запрос на сервер
+        const response = await fetch(`/get_episode/${shikimori_id}/${episode.value}/${translation_id}`);
 
         if (!response.ok) {
-            throw new Error(`Ошибка: ${response.status}`);
+            throw new Error(`Ошибка запроса: ${response.status} ${response.statusText}`);
         }
 
         const text = await response.text();
-        window.location.href = `mpv://${encodeURIComponent(text)}`;
-        
-        if (notification) showNotification(notification, "Открываю MPV!", 2000);
-        
-        save_last_watched(shikimori_id, ep_value, translation_id);
+        window.location.href = `mpv://${escape(text)}`
+        // Копируем в буфер обмена
+        // await navigator.clipboard.writeText(text);
+
+        fadeOut(copy_alert,"Открываю MPV!", 2000);
+        save_last_watched(shikimori_id, episode.value, translation_id)
+        update_recently_watched_list(shikimori_id)
     } catch (err) {
-        console.error('Ошибка:', err);
-        if (notification) showNotification(notification, "Ошибка открытия :(", 3000);
+        console.error('Не удалось получить или скопировать ответ:', err);
     }
 }
 
-function showNotification(el, text, duration) {
-    el.querySelector(".alert").textContent = text;
-    el.classList.add("visible");
-    if (el.timeout) clearTimeout(el.timeout);
-    el.timeout = setTimeout(() => el.classList.remove("visible"), duration);
+
+function fadeOut(element, text, duration = 300) {
+    let start = null;
+    element.getElementsByClassName("alert")[0].innerHTML = text
+    element.style.visibility = 'visible';
+    
+
+    function step(timestamp) {
+        if (!start) start = timestamp;
+        const progress = timestamp - start;
+        const opacity = Math.max(1 - progress / duration, 0);
+
+        element.style.opacity = opacity;
+
+        if (progress < duration) {
+            requestAnimationFrame(step);
+        } else {
+            element.style.opacity = 0;
+            element.style.visibility = 'hidden';
+        }
+    }
+
+    requestAnimationFrame(step);
 }
 
-function save_last_watched(shikimori_id, episode, translation_id) {
+function save_last_watched(shikimori_id, episode, translation_id){
     const data = JSON.parse(localStorage.getItem("lastEpisodes") || "{}");
     data[shikimori_id] = [episode, translation_id];
     localStorage.setItem("lastEpisodes", JSON.stringify(data));
-    highlight_last_watched(shikimori_id, episode, translation_id);
+    load_last_watched(shikimori_id)
+
 }
 
-function highlight_last_watched(shikimoriId, episode, translationId) {
-    for (let btn of episodeButtons) {
-        if (btn.getAttribute("data-translation-id") === translationId && btn.value === episode) {
-            btn.classList.add("last-watched");
-        } else {
-            btn.classList.remove("last-watched");
-        }
-    }
+function update_recently_watched_list(shikimori_id){
+    let imglink = document.getElementsByClassName("imglink")[0].getAttribute("src")
+    let name = document.getElementsByClassName("anime-title")[0].innerHTML
+    let data = JSON.parse(localStorage.getItem("recently_watched") || "[]");
+
+    if (data.length >= 5)
+        data.pop()
+
+    data.unshift([shikimori_id, name, imglink])
+    localStorage.setItem("recently_watched", JSON.stringify(data))
 }
 
 function load_last_watched(shikimori_id) {
     const data = JSON.parse(localStorage.getItem("lastEpisodes") || "{}");
-    if (data[shikimori_id]) {
-        highlight_last_watched(shikimori_id, data[shikimori_id][0], data[shikimori_id][1]);
+    for (let item of numbers){
+        if (item.getAttribute("data-translation-id") === data[shikimori_id][1] && item.value === data[shikimori_id][0] ){
+            item.classList.add("last-watched")
+            break
+        }
+
     }
+
 }

@@ -1,245 +1,166 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <!-- Стили Bootstrap 5 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
 
-{% block title %}{{ title }}{% endblock %}
-
-{% block head %}
-<style>
-    .info-header {
-        display: flex;
-        gap: 40px;
-        margin-top: 40px;
-        flex-wrap: wrap;
-    }
-    .poster-container {
-        flex: 0 0 320px;
-        max-width: 100%;
-    }
-    .poster-container img {
-        width: 100%;
-        border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-    }
-    .info-content {
-        flex: 1;
-        min-width: 300px;
-    }
-    .metadata-grid {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 10px 20px;
-        margin-bottom: 25px;
-        color: var(--text-muted);
-    }
-    .metadata-grid .label {
-        font-weight: 600;
-        color: var(--text-main);
-    }
-    .description-box {
-        margin-top: 20px;
-        padding: 20px;
-        font-size: 1rem;
-    }
-    .episode-number {
-        background: var(--surface-glass);
-        border: 1px solid var(--surface-glass-border);
-        border-radius: 8px;
-        width: 40px;
-        height: 40px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: var(--transition-smooth);
-        margin: 4px;
-        color: var(--text-main);
-    }
-    .episode-number:hover {
-        border-color: var(--primary-color);
-        background: var(--primary-glow);
-    }
-    .episode-number.last-watched {
-        border-color: var(--accent-color);
-        box-shadow: 0 0 10px var(--accent-color);
-    }
-    .translation-row {
-        margin-bottom: 10px;
-        padding: 15px;
-        display: flex;
-        align-items: center;
-        gap: 20px;
-    }
-    .translation-name {
-        flex: 0 0 200px;
-        font-weight: 600;
-    }
-    .episodes-grid {
-        flex: 1;
-    }
-    .copied {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        z-index: 1000;
-        padding: 15px 25px;
-        pointer-events: none;
-        opacity: 0;
-        transform: translateY(10px);
-        transition: var(--transition-smooth);
-    }
-    .copied.visible {
-        opacity: 1;
-        transform: translateY(0);
-        visibility: visible;
-    }
-    .related-scroll {
-        display: flex;
-        gap: 20px;
-        overflow-x: auto;
-        padding-bottom: 20px;
-        scrollbar-width: thin;
-        scrollbar-color: var(--primary-color) var(--bg-color);
-    }
-    .related-card {
-        flex: 0 0 350px;
-        display: flex;
-        gap: 15px;
-        padding: 15px;
-        transition: var(--transition-smooth);
-    }
-    .related-card:hover {
-        border-color: var(--primary-color);
-        transform: translateY(-5px);
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="info-header fade-in">
-    <div class="poster-container">
-        <img class="imglink" src="{{ image }}" alt="{{ title }}" loading="lazy">
-    </div>
-    <div class="info-content">
-        <h1 class="anime-title" style="font-size: 2.5rem; margin-bottom: 20px;">{{ title }}</h1>
-        <div class="metadata-grid">
-            <span class="label">Тип:</span> <span>{{ dtype }}</span>
-            <span class="label">Статус:</span> <span>{{ status }}</span>
-            <span class="label">Выход:</span> <span>{{ date }}</span>
-            <span class="label">Оценка:</span> <span style="color: var(--accent-color); font-weight: 700;">{{ score }}</span>
-            <span class="label">Рейтинг:</span> <span>{{ rating }}</span>
-            {% if is_shiki %}
-            <span class="label">Источник:</span> <a href="https://shikimori.one/animes/{{ id }}" target="_blank">Shikimori →</a>
-            {% endif %}
-        </div>
-        
-        <div class="glass-card description-box">
-            <details {% if not request.MOBILE %}open{% endif %}>
-                <summary style="cursor: pointer; font-weight: 600; margin-bottom: 10px;">Описание</summary>
-                <div style="margin-top: 10px; color: var(--text-muted);">{{ description }}</div>
-            </details>
-        </div>
-    </div>
-</div>
-
-{% if related|length > 0 %}
-<section style="margin-top: 60px;" class="fade-in">
-    <h2 style="margin-bottom: 30px;">Связанное</h2>
-    <div class="related-scroll">
+  </head>
+  <body {% if is_dark %}class="dark-body"{% endif %}>
+    <!-- Контент -->
+    <table>
+      <tr>
+        <td><a href='/'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">На главную</button></a></td>
+        <td><form method="POST" action="/change_theme/" novalidate>
+            <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position:absolute;top:1px">Сменить тему</button>
+        </form></td>
+      </tr>
+    </table>
+    <div class="container mt-5">
+      <h1 class="mb-4 anime-title">{{ title }}</h1>
+      {% if request.MOBILE %}
+        <img class="imglink" src="{{ image }}" height=500px style="padding-bottom: 10px;">
+        <br>
+        <div><font size="4">
+          Тип: {{ dtype }}<br>
+          Статус: {{ status }}<br>
+          Даты выхода: {{ date }}<br>
+          Оценка шикимори: {{ score }}<br>
+          Рейтинг: {{ rating }}<br>
+          {% if is_shiki %}
+            <a class="{% if is_dark %}dark-{% endif %}black-href" href="https://shikimori.one/animes/{{ id }}">Ссылка шикимори</a><br>
+          {% endif %}
+          <br>
+          <details><summary>Описание</summary>
+                  <font size="4">{{ description }}</font>
+                </details>
+        </font></div>
+      {% else %}
+        <table style="padding-bottom: 10px;">
+          <tr>
+            <td>
+              <img class="imglink" src="{{ image }}" height=500px>
+            </td>
+            <td style="vertical-align: top;">
+              <div style="padding-left: 30px;"><font size="5">
+              Тип: {{ dtype }}<br>
+              Статус: {{ status }}<br>
+              Даты выхода: {{ date }}<br>
+              Оценка шикимори: {{ score }}<br>
+              Рейтинг: {{ rating }}<br>
+              {% if is_shiki %}
+                <a class="{% if is_dark %}dark-{% endif %}black-href" href="https://shikimori.one/animes/{{ id }}">Ссылка шикимори</a><br>
+              {% endif %}
+              <br>
+              <details><summary>Описание</summary>
+                  <font size="4">{{ description }}</font>
+                </details>
+              </font></div>
+            </td>
+          </tr>
+        </table>
+      {% endif %}
+      {% if related|length > 0 %}
+        <hr>
+        <h3 class="mb-3">Связанное</h3>
+        <div style="overflow: auto;">
+        <table><tr>
         {% for item in related %}
-        <a href="{{ item['internal_link'] }}" class="glass-card related-card">
-            <img src="{{ item['picture'] }}" style="width: 100px; height: 140px; object-fit: cover; border-radius: 8px;">
-            <div style="overflow: hidden;">
-                <h4 style="margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 1rem;">{{ item['name'] }}</h4>
-                <p style="font-size: 0.8rem; color: var(--text-muted);">
-                    {{ item['type'] }} • {{ item['relation'] }}<br>
-                    {{ item['date'] }}
-                </p>
-            </div>
-        </a>
+          <td style="width: 20vw; min-width: 320px;">
+            <a class="{% if is_dark %}dark-{% endif %}black-href" href="{{ item['internal_link'] }}">
+            <table>
+              <td><img src="{{ item['picture'] }}" height="200px"></td>
+              <td style="vertical-align: top;">
+                <p style="padding-left: 15px;"><font size="3">
+                  Тип: {{ item['type'] }}<br>
+                  Даты выхода: {{ item['date'] }}<br>
+                  Связь: {{ item['relation'] }}
+                  </font></p>
+              </td>
+            </table>
+            <h3 class="mb-3" style="word-wrap: normal;">{{ item['name'] }}</h3>
+            </a>
+          </td>
         {% endfor %}
-    </div>
-</section>
-{% endif %}
+        </tr></table></div>
+      {% endif %}
+      <hr>
+    <span title="Нет любимой озвучки в топе? Ты можешь предложить изменить топ в тг у разраба - @dgndnd">ℹ️</span>
+      <h5>Выберите перевод: (Всего {{ translations|length }})</h5>
 
-<section style="margin-top: 60px;" class="fade-in">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 20px;">
-        <h2>Выбор озвучки</h2>
-        <div style="display: flex; align-items: center; gap: 25px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <label class="switch-modern" title="При клике на номер серии сразу открывать MPV">
-                    <input type="checkbox" id="auto_mpv_toggle">
-                    <span class="slider-modern"></span>
-                </label>
-                <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">Авто-открытие MPV</span>
+{#    <code>#}
+{#        {{ translations }}#}
+{##}
+{#        {{ dtype }}#}
+{#        <br>#}
+{#        {{ cache_wasnt_used }}#}
+{#    </code>#}
+      <table>
+      {% for translation in top_translations %}
+      <tr class="translations-table">
+        <td width=100px>
+          <font size="4">{{ translation.type }}</font>
+        </td>
+        <td width=250px >
+          <font size="4"><p {% if is_dark %} class="dark-text"{% endif %} style="margin: auto;">{{ translation.name }}</p></font>
+        </td>
+        <td>
+            <div class="copied" style="visibility: hidden;" >
+              <p class="alert">Запрашиваем ссылку!</p>
             </div>
-            <span title="Предложить изменения: @dgndnd" style="cursor: help; color: var(--text-muted); font-size: 1.2rem;">ℹ️</span>
-        </div>
-    </div>
-    
-    <div class="glass-card" style="padding: 10px;">
-        {% for translation in top_translations %}
-        <div class="translation-row" style="border-bottom: 1px solid var(--surface-glass-border);">
-            <div class="translation-name">
-                <span style="font-size: 0.8rem; color: var(--accent-color); display: block; text-transform: uppercase;">{{ translation.type }}</span>
-                {{ translation.name }}
-            </div>
-            <div class="episodes-grid">
-                {% if translation.series_count %}
-                    {% for i in range(1, (translation.series_count+1)) %}
-                        <button class="episode-number" value="{{ i }}" 
-                                data-translation-id="{{ translation.id }}" 
-                                data-shikimori-id="{{ id }}"
-                                data-web-url="/watch/{{ serv }}/{{ id }}/{{ translation.series_count }}-{{ translation.id }}/{{ i }}/"
-                        >{{ i }}</button>
-                    {% endfor %}
-                {% else %}
-                    <button class="episode-number" value="0" 
-                            data-translation-id="{{ translation.id }}" 
-                            data-shikimori-id="{{ id }}"
-                            data-web-url="/watch/{{ serv }}/{{ id }}/{{ translation.series_count }}-{{ translation.id }}/0/"
-                    >Фильм</button>
-                {% endif %}
-            </div>
-        </div>
-        {% endfor %}
-        
-        {% if etc_translations %}
-        <details style="margin-top: 10px;">
-            <summary style="padding: 15px; cursor: pointer; color: var(--text-muted); font-weight: 500;">Другие переводы ({{ etc_translations|length }})</summary>
-            <div style="padding: 10px;">
-                {% for translation in etc_translations %}
-                <div class="translation-row" style="border-bottom: 1px solid var(--surface-glass-border);">
-                    <div class="translation-name">{{ translation.name }}</div>
-                    <div class="episodes-grid">
-                        {% if translation.series_count %}
-                            {% for i in range(1, (translation.series_count+1)) %}
-                                <button class="episode-number" value="{{ i }}" 
-                                        data-translation-id="{{ translation.id }}" 
-                                        data-shikimori-id="{{ id }}"
-                                        data-web-url="/watch/{{ serv }}/{{ id }}/{{ translation.series_count }}-{{ translation.id }}/{{ i }}/"
-                                >{{ i }}</button>
-                            {% endfor %}
-                        {% else %}
-                            <button class="episode-number" value="0" 
-                                    data-translation-id="{{ translation.id }}" 
-                                    data-shikimori-id="{{ id }}"
-                                    data-web-url="/watch/{{ serv }}/{{ id }}/{{ translation.series_count }}-{{ translation.id }}/0/"
-                            >0</button>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </details>
-        {% endif %}
-    </div>
-</section>
+          <font size="4">
+            {% if translation.series_count%}
+              {% for i in range(1, (translation.series_count+1)) %}
+                <button class="episode-number" value="{{ i }}" data-translation-id="{{ translation.id }}" data-shikimori-id="{{ id }}"><p {% if is_dark %} class="dark-text"{% endif %}>{{ i }}</p></button>
+              {% endfor %}
 
-<!-- Уведомление о запросе ссылки -->
-<div id="copy-notification" class="glass-card copied" style="border-color: var(--primary-color);">
-    <p class="alert" style="margin: 0; font-weight: 600;">Запрашиваем ссылку...</p>
-</div>
-{% endblock %}
+            {% else %}
+            <button class="episode-number" value="0" data-translation-id="{{ translation.id }}" data-shikimori-id="{{ id }}"><p {% if is_dark %} class="dark-text"{% endif %}>0</p></button>
+            {% endif %}
+          </font>
+        </td>
+      </tr>
+      {% endfor %}
+      </table>
+    <br>
+    <details>
+    <summary>Остальные озвучки</summary>
+        <table>
+      {% for translation in etc_translations %}
+      <tr class="translations-table">
+        <td width=100px>
+          <font size="4">{{ translation.type }}</font>
+        </td>
+        <td width=250px >
+          <font size="4"><p {% if is_dark %} class="dark-text"{% endif %} style="margin: auto;">{{ translation.name }}</p></font>
+        </td>
+        <td>
+            <div class="copied" style="visibility: hidden;" >
+              <p class="alert">Запрашиваем ссылку!</p>
+            </div>
+          <font size="4">
+            {% if translation.series_count%}
+              {% for i in range(1, (translation.series_count+1)) %}
+                  <button class="episode-number" value="{{ i }}" data-translation-id="{{ translation.id }}" data-shikimori-id="{{ id }}" ><p {% if is_dark %} class="dark-text"{% endif %}>{{ i }}</p></button>
+              {% endfor %}
 
-{% block scripts %}
-<script src="{{ url_for('static', filename='js/copy_episode_link.js') }}"></script>
-{% endblock %}
+            {% else %}
+            <button class="episode-number" value="0" data-translation-id="{{ translation.id }}" data-shikimori-id="{{ id }}"><p {% if is_dark %} class="dark-text"{% endif %}>0</p></button>
+            {% endif %}
+          </font>
+        </td>
+      </tr>
+      {% endfor %}
+      </table>
+    </details>
+      <br><br><br><br><br>
+
+    </div>
+    <!-- Скрипты Bootstrap 5 -->
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/copy_episode_link.js') }}"></script>
+  </body>
+</html>

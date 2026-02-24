@@ -158,7 +158,7 @@ def download_shiki_choose_translation(serv, id):
             etc_translations=serial_data['etc_translations'],
             series_count=serial_data["series_count"], id=id,
             dtype=dtype, date=date, status=status, rating=rating, related=related,
-            description=description, is_shiki=True, cache_wasnt_used=cache_wasnt_used, serv=serv,
+            description=description, is_shiki=True, cache_wasnt_used=cache_wasnt_used,
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     elif serv == "kp":
         try:
@@ -171,7 +171,7 @@ def download_shiki_choose_translation(serv, id):
             """
         return render_template('info.html', 
             title="...", image=config.IMAGE_NOT_FOUND, score="...", translations=serial_data['translations'], series_count=serial_data["series_count"], id=id, 
-            dtype="...", date="...", status="...", description='...', is_shiki=False, serv=serv,
+            dtype="...", date="...", status="...", description='...', is_shiki=False,
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
     else:
         return abort(400)
@@ -430,6 +430,7 @@ def change_room_quality(rid, quality):
 @app.route('/fast_download_act/<string:id_type>-<string:id>-<int:seria_num>-<string:translation_id>-<string:quality>/')
 @app.route('/fast_download_act/<string:id_type>-<string:id>-<int:seria_num>-<string:translation_id>-<string:quality>-<int:max_series>/')
 def fast_download_work(id_type: str, id: str, seria_num: int, translation_id: str, quality: str, max_series: int = 12):
+    from fast_download import fast_download, get_path
     translation = translations[translation_id] if translation_id in translations else "Неизвестно"
     add_zeros = len(str(max_series))
     if config.USE_SAVED_DATA and ch.is_id('sh'+id):
@@ -505,7 +506,7 @@ def broadcast(data):
 @app.route('/help/')
 def help():
     # Заглушка
-    return redirect("https://github.com/1Dradon1/anime-site/blob/main/README.MD")
+    return redirect("https://github.com/YaNesyTortiK/Kodik-Download-Watch/blob/main/README.MD")
 
 @app.route('/resources/<string:path>')
 def resources(path: str):
@@ -522,7 +523,7 @@ def get_episode(shikimori_id: str, seria_num: int, translation_id: str):
 
 @app.route('/guide')
 def guide():
-    return render_template('guide.html', is_dark=session.get('is_dark', False))
+    return render_template('/guide.html')
 
 @app.route('/download')
 def download_file():

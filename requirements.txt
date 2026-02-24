@@ -8,12 +8,11 @@ colorama==0.4.6
 Flask==2.2.3
 Flask-Mobility==1.1.0
 Flask-SocketIO==5.3.4
-Flask-HTTPAuth==4.8.0
 h11==0.14.0
 idna==3.4
 itsdangerous==2.1.2
 Jinja2==3.1.2
-lxml==6.0.2
+lxml==5.2.1
 MarkupSafe==2.1.2
 python-engineio==4.4.1
 python-socketio==5.8.0
