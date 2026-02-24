@@ -505,7 +505,7 @@ def broadcast(data):
 @app.route('/help/')
 def help():
     # Заглушка
-    return redirect("https://github.com/YaNesyTortiK/Kodik-Download-Watch/blob/main/README.MD")
+    return redirect("https://github.com/1Dradon1/anime-site/blob/main/README.MD")
 
 @app.route('/resources/<string:path>')
 def resources(path: str):
