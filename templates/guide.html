@@ -1,71 +1,18 @@
-{% extends "base.html" %}
-
-{% block title %}Гайд по установке{% endblock %}
-
-{% block content %}
-<div class="fade-in" style="margin-top: 40px;">
-    <div style="text-align: center; margin-bottom: 50px;">
-        <h1 style="font-size: 2.5rem; margin-bottom: 20px;">Настройка <span style="color: var(--primary-color);">MPV</span> Плеера</h1>
-        <p style="color: var(--text-muted); max-width: 700px; margin: 0 auto; font-size: 1.1rem;">
-            Для комфортного просмотра в лучшем качестве и без задержек мы рекомендуем использовать плеер MPV. 
-            Это позволит смотреть аниме напрямую через приложение на вашем ПК.
-        </p>
-    </div>
-
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; margin-bottom: 40px;">
-        <!-- High End Card -->
-        <div class="glass-card" style="padding: 30px; display: flex; flex-direction: column; border-top: 4px solid var(--primary-color);">
-            <div style="font-size: 2rem; margin-bottom: 15px;">🚀</div>
-            <h2 style="margin-bottom: 15px;">Higher-End ПК</h2>
-            <p style="color: var(--text-muted); margin-bottom: 25px; flex-grow: 1;">
-                Оптимально для мощных видеокарт (GTX 1080, RTX 20/30/40 серий, RX 5700XT+). 
-                Включает продвинутые шейдеры для улучшения картинки.
-            </p>
-            <a href="{{ url_for('download_file') }}?version=high" class="btn-modern" style="width: 100%;">
-                Скачать dgnmpv.zip
-            </a>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 15px; text-align: center;">~ 45 MB</p>
-        </div>
-
-        <!-- Low End Card -->
-        <div class="glass-card" style="padding: 30px; display: flex; flex-direction: column; border-top: 4px solid var(--accent-color);">
-            <div style="font-size: 2rem; margin-bottom: 15px;">💻</div>
-            <h2 style="margin-bottom: 15px;">Lower-End ПК</h2>
-            <p style="color: var(--text-muted); margin-bottom: 25px; flex-grow: 1;">
-                Для более слабых систем или ноутбуков (GTX 1060, GTX 960, встройки). 
-                Облегченная конфигурация для стабильной работы.
-            </p>
-            <a href="{{ url_for('download_file') }}?version=low" class="btn-modern btn-secondary" style="width: 100%;">
-                Скачать dgnmpv-low.zip
-            </a>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 15px; text-align: center;">~ 40 MB</p>
-        </div>
-    </div>
-
-    <div class="glass-card" style="padding: 40px; border-left: 4px solid var(--primary-color);">
-        <h3 style="margin-bottom: 25px; display: flex; align-items: center; gap: 10px;">
-            <span style="background: var(--primary-glow); padding: 5px 12px; border-radius: 8px; font-size: 0.9rem;">Инструкция</span>
-            Простая установка в 3 шага
-        </h3>
-        
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px;">
-            <div>
-                <b style="color: var(--primary-color); font-size: 1.2rem; display: block; margin-bottom: 10px;">1. Распаковка</b>
-                <p style="font-size: 0.9rem; color: var(--text-muted);">Разархивируйте скачанный архив в любое удобное место на диске.</p>
-            </div>
-            <div>
-                <b style="color: var(--primary-color); font-size: 1.2rem; display: block; margin-bottom: 10px;">2. Запуск</b>
-                <p style="font-size: 0.9rem; color: var(--text-muted);">Найдите файл <b>RUN_ME_AS_ADMINISTRATOR.bat</b> и запустите его <b>ОТ ИМЕНИ АДМИНИСТРАТОРА</b>.</p>
-            </div>
-            <div>
-                <b style="color: var(--primary-color); font-size: 1.2rem; display: block; margin-bottom: 10px;">3. Готово</b>
-                <p style="font-size: 0.9rem; color: var(--text-muted);">После завершения работы скрипта саму папку с установщиком можно удалить.</p>
-            </div>
-        </div>
-    </div>
-
-    <div style="margin-top: 40px; text-align: center;">
-        <a href="/" class="btn-modern btn-secondary">← Вернуться на главную</a>
-    </div>
-</div>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Гайд</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+</head>
+<body class="guide">
+<h1>Установка плеера</h1>
+<p>Сайт работает в связке с плеером, для установки скачайте:<br>
+<a href="{{ url_for('download_file') }}">dgnmpv.zip</a> - для higher-end видеокарт (Eg. GTX 1080, RTX 2070, RTX 3060, RX 590, 5700XT, 6600XT)<br>
+<a href="{{ url_for('download_file') }}">dgnmpv-low-end.zip</a> - для lower-end видеокарт (Eg. GTX 980, GTX 1060, RX 570)<br>
+разархивируйте и запустите файл "RUN_ME_AS_ADMINISTRATOR.bat" ОТ ИМЕНИ АДМИНИСТРАТОРА
+</p>
+<br>
+<P>после установки папку можно удалить</P>
+</body>
+</html>

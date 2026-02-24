@@ -1,88 +1,57 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск</title>
+    <!-- Стили Bootstrap 5 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
 
-{% block title %}Главная{% endblock %}
+  </head>
+  <body {% if is_dark %}class="dark-body"{% endif %}>
+    <!-- Контент -->
+    <form method="POST" action="/change_theme/" novalidate>
+      <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position:absolute;top:1px">Сменить тему</button>
+      <h2 class="text-center mb-4"><a href="/guide">Гайд по установке mpv плеера на windows</a></h2>
+    </form>
+    <div class="recently_watch">
 
-{% block content %}
-<section class="hero" style="text-align: center; padding: 100px 0 60px;">
-    <h1 class="fade-in" style="font-size: 3.5rem; margin-bottom: 20px;">Найти <span style="color: var(--primary-color);">Аниме</span></h1>
-    <p class="fade-in" style="color: var(--text-muted); max-width: 600px; margin: 0 auto 40px;">Введите название тайтла или ID с популярных сервисов для мгновенного просмотра.</p>
-    
-    <div class="glass-card fade-in" style="max-width: 800px; margin: 0 auto; padding: 40px;">
-        <form method="POST" novalidate id="search-form">
-            <div style="margin-bottom: 30px;">
-                <label for="search-input" style="display: block; text-align: left; margin-bottom: 10px; font-weight: 500;">Название аниме</label>
-                <input class="search-input-modern" id="search-input" name="kdk" placeholder="Напр: Магическая битва" required autocomplete="off">
-                <button type="submit" class="btn-modern" style="width: 100%; margin-top: 20px;">Поиск по названию</button>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-top: 1px solid var(--surface-glass-border); padding-top: 30px;">
-                <div style="text-align: left;">
-                    <label style="display: block; margin-bottom: 10px; font-size: 0.9rem; color: var(--text-muted);">Shikimori ID</label>
-                    <input class="search-input-modern" name="shikimori_id" placeholder="ID" autocomplete="off">
-                    <button type="submit" class="btn-modern btn-secondary" style="width: 100%; margin-top: 10px; font-size: 0.9rem;">Найти</button>
-                </div>
-                <div style="text-align: left;">
-                    <label style="display: block; margin-bottom: 10px; font-size: 0.9rem; color: var(--text-muted);">Кинопоиск ID</label>
-                    <input class="search-input-modern" name="kinopoisk_id" placeholder="ID" autocomplete="off">
-                    <button type="submit" class="btn-modern btn-secondary" style="width: 100%; margin-top: 10px; font-size: 0.9rem;">Найти</button>
-                </div>
-            </div>
+    </div>
+    <div class="container mt-5">
+      <h1 class="text-center mb-4">Поиск</h1>
+      <form method="POST" novalidate>
+        <div class="mb-3">
+          <label for="original-url" class="form-label">Введите название</label>
+          <input class="{% if is_dark %}dark-{% endif %}form-control" id="original-url" name="kdk" required autocomplete=off>
+        </div>
+        <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3">Поиск</button>
+      </form>
+      <h1 class="text-center mb-4">Поиск по id: (<a href='/help/'{% if is_dark %} class="dark-href"{% endif %}>Помощь</a>)</h1>
+      <div class="mb-3">
+        <form method="POST" novalidate>
+            <label for="original-url" class="form-label">Вставьте id <a href='https://shikimori.one' {% if is_dark %} class="dark-href"{% endif %}>Шикимори</a></label>
+            <input class="{% if is_dark %}dark-{% endif %}form-control" id="original-url" name="shikimori_id" required autocomplete=off>
+          <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3">Поиск</button>
         </form>
+      </div>
+      <div class="mb-3">
+        <form method="POST" novalidate>
+            <label for="original-url" class="form-label">Вставьте id <a href='https://www.kinopoisk.ru/' {% if is_dark %} class="dark-href"{% endif %}>Кинопоиск</a></label>
+            <input class="{% if is_dark %}dark-{% endif %}form-control" id="original-url" name="kinopoisk_id" required autocomplete=off>
+          <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3">Поиск</button>
+        </form>
+      </div>
     </div>
-</section>
-
-<section class="recently-watched-section" style="margin-top: 60px;">
-    <h2 style="margin-bottom: 30px; font-size: 1.8rem;">Продолжить просмотр</h2>
-    <div class="recently_watch" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 30px;">
-        <!-- Будет заполнено через display_recently.js -->
-    </div>
-</section>
-
-<div style="margin-top: 100px; text-align: center;" class="fade-in">
-    <p style="color: var(--text-muted);">Нужна помощь с настройкой? <a href="/help/" style="font-weight: 600;">Раздел помощи</a></p>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script src="{{ url_for('static', filename='js/display_recently.js') }}"></script>
-<script>
-    // Добавим немного интерактива: если введено число в основной поиск, переключать подсказку или тип
-    const mainSearch = document.getElementById('search-input');
-    mainSearch.addEventListener('input', (e) => {
-        // Логика автоопределения ID (опционально)
-    });
-</script>
-<style>
-    .recently_watch .card {
-        display: flex;
-        flex-direction: column;
-        transition: var(--transition-smooth);
-        overflow: hidden;
-        border-radius: 16px;
-        background: var(--surface-glass);
-        border: 1px solid var(--surface-glass-border);
-        backdrop-filter: var(--glass-blur);
-    }
-    .recently_watch .card:hover {
-        transform: translateY(-10px);
-        border-color: var(--primary-color);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    .recently_watch img {
-        width: 100%;
-        height: 280px;
-        object-fit: cover;
-        border-bottom: 1px solid var(--surface-glass-border);
-    }
-    .recently_watch h6 {
-        padding: 15px;
-        font-size: 1rem;
-        font-weight: 600;
-        text-align: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        margin: 0;
-    }
-</style>
-{% endblock %}
+    <p class="text-md-center">
+        Для нормального отображения картинок надо добавить в VPN/zapret
+        <code>
+            domain:shiki.one,
+            domain:shikimori.one
+        </code>
+    </p>
+    <!-- Скрипты Bootstrap 5 -->
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/display_recently.js') }}"></script>
+  </body>
+</html>

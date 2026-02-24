@@ -1,67 +1,82 @@
-{% extends "base.html" %}
-
-{% block title %}Результаты поиска{% endblock %}
-
-{% block content %}
-<div style="margin-top: 40px; margin-bottom: 60px;">
-    <h1 style="margin-bottom: 30px;">Результаты <span style="color: var(--primary-color);">поиска</span></h1>
-    
-    <div class="glass-card" style="padding: 20px; margin-bottom: 60px;">
-        <form method="POST" novalidate action="/">
-            <div style="display: flex; gap: 15px;">
-                <input class="search-input-modern" name="kdk" placeholder="Искать аниме..." required autocomplete="off">
-                <button type="submit" class="btn-modern">Поиск</button>
-            </div>
-        </form>
-    </div>
-
-    {% if items %}
-    <h2 style="margin-bottom: 30px; font-size: 1.5rem;">Аниме:</h2>
-    <div class="search-results-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">
-        {% for item in items %}
-        <a href="/download/sh/{{ item.id }}/" class="glass-card search-card fade-in" style="display: flex; gap: 20px; overflow: hidden; height: 180px;">
-            <img src="{{ item.image }}" style="width: 120px; height: 100%; object-fit: cover; border-right: 1px solid var(--surface-glass-border);" loading="lazy">
-            <div style="padding: 20px; display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
-                <h3 style="font-size: 1.1rem; margin-bottom: 10px; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.title }}</h3>
-                <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
-                    <p>Тип: {{ item.type }}</p>
-                    <p>Статус: {{ item.status }}</p>
-                    <p>Даты: {{ item.date }}</p>
-                </div>
-            </div>
-        </a>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="glass-card" style="padding: 40px; text-align: center;">
-        <h3 style="color: var(--text-muted);">По вашему запросу ничего не найдено</h3>
-    </div>
-    {% endif %}
-
-    {% if others %}
-    <div style="margin-top: 60px;">
-        <h2 style="margin-bottom: 30px; font-size: 1.5rem;">Прочее:</h2>
-        <div class="others-list" style="display: grid; gap: 10px;">
-            {% for item in others %}
-            <a href="/download/kp/{{ item.id }}/" class="glass-card" style="padding: 15px 25px; display: block;">
-                <span style="color: var(--text-muted); margin-right: 10px;">{{ item.type }}</span>
-                <span style="font-weight: 500;">{{ item.title }}</span>
-                <span style="float: right; color: var(--text-muted); font-size: 0.9rem;">{{ item.date }}</span>
-            </a>
-            {% endfor %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск</title>
+    <!-- Стили Bootstrap 5 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+  </head>
+  <body {% if is_dark %}class="dark-body"{% endif %}>
+    <!-- Контент -->
+    <table>
+      <tr>
+        <td><a href='/'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">На главную</button></a></td>
+        <td><form method="POST" action="/change_theme/" novalidate>
+            <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position:absolute;top:1px">Сменить тему</button>
+        </form></td>
+      </tr>
+    </table>
+    <div class="container mt-5">
+      <h1 class="text-center mb-4">Поиск</h1>
+      <form method="POST" novalidate action="/">
+        <div class="mb-3">
+          <label for="original-url" class="form-label">Введите название</label>
+          <input class="{% if is_dark %}dark-{% endif %}form-control" id="original-url" name="kdk" required autocomplete=off>
         </div>
+        <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3">Поиск</button>
+      </form>
     </div>
+    <div class="container mt-5">
+    <h1 class="mb-4">Аниме:</h1><hr>
+    <table width=100%>
+      <tr width=100%>
+        {% for item in items %}
+        <th width="{{ 100/ 1 if request.MOBILE else 3 }}%">
+          <div class="mb-3">
+            <a href="/download/sh/{{ item.id }}/" class="{% if is_dark %}dark-{% endif %}black-href">
+            <table width=100%>
+              <td>
+                <th width=30%>
+                  <img src='{{ item.image }}' height=200px width=150px>
+                </th>
+              </td>
+              <td>
+                <th width=70%>
+                  <h5>{{ item.title }}</h5>
+                  <p>Тип: {{ item.type }}<br>Даты:<br>{{ item.date }}<br>Статус: {{ item.status }}</p>
+                </th>
+              </td>
+            </table>
+            </a>
+          </div>
+        </th>
+          {% if loop.index % (1 if request.MOBILE else 3) == 0 %}
+            </tr><tr width=100%>
+          {% endif %}
+        {% else %}
+          <div class="mb-3">
+            <th><h5>По вашему запросу ничего не найдено</h5></th>
+          </div>
+        {% endfor %}
+      </tr>
+    </table>
+    {% if others %}
+      <hr><h1 class="mb-4">Прочее:</h1><hr>
+      <ul>
+      {% for item in others %}
+        <li>
+          <a href="/download/kp/{{ item.id }}/" class="{% if is_dark %}dark-{% endif %}black-href">
+          {{ item.type }}: {{ item.title }}<br>
+          {{ item.date }}
+          </a>
+        </li>
+      {% endfor %}
+      </ul>
     {% endif %}
-</div>
-
-<style>
-    .search-card {
-        transition: var(--transition-smooth);
-    }
-    .search-card:hover {
-        transform: scale(1.02);
-        border-color: var(--primary-color);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-    }
-</style>
-{% endblock %}
+    </div>
+    <!-- Скрипты Bootstrap 5 -->
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+  </body>
+</html>
