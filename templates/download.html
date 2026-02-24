@@ -1,68 +1,125 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Скачать</title>
-    <!-- Стили Bootstrap 5 -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+{% extends "base.html" %}
 
-  </head>
-  <body {% if is_dark %}class="dark-body"{% endif %}>
-    <!-- Контент -->
-    <table>
-      <tr>
-        <td><a href='/'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">На главную</button></a></td>
-        <td><form method="POST" action="/change_theme/" novalidate>
-            <button type="submit" class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position:absolute;top:1px">Сменить тему</button>
-        </form></td>
-      </tr>
-    </table>
-    <div class="container mt-5">
-      <h1 class="mb-4">Скачивание:</h1>
-      <p>Если у вас не получается скачать, попробуйте выбрать другое качество.</p>
-      {% if series != 0 %}
-        <table>
-          <thead>
-            <tr>
-              <th style="text-align: center; vertical-align: middle;" width=50px>№</th><th style="text-align: center; vertical-align: middle;" width=150px>Быстрая загрузка</th><th style="text-align: center; vertical-align: middle;" width=150px>Стандартная загрузка</th><th style="text-align: center; vertical-align: middle;">Смотреть онлайн</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for url in range(series) %}
-              <tr>
-                <td align="center">
-                  <font size=4>{{ loop.index }}</font>
-                </td>
-                <td align="center">
-                  <font size=4>
-                    <a href="fast-720-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href="fast-480-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href="fast-360-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>360</a>
-                  </font>
-                </td>
-                <td align="center">
-                  <font size=4>
-                    <a href="old-720-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href="old-480-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href="old-360-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>360</a>
-                  </font>
-                </td>
-                <td align="center">
-                  <font size=4><a href='watch-{{ loop.index }}/'{% if is_dark %} class="dark-href"{% endif %}>Смотреть онлайн</a></font>
-                </td>
-              </tr>
-            <!--<p>{{ loop.index }} серия: <a href="720-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href="480-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href="360-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>360</a> | <a href='watch-{{ loop.index }}/'{% if is_dark %} class="dark-href"{% endif %}>Смотреть онлайн</a></p>
-            -->
-            {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <p>Быстрая загрузка: <a href="fast-720-0/"{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href="fast-480-0/"{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href="fast-360-0/"{% if is_dark %} class="dark-href"{% endif %}>360</a></p>
-        <p>Стандартная загрузка: <a href="old-720-0/"{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href="old-480-0/"{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href="old-360-0/"{% if is_dark %} class="dark-href"{% endif %}>360</a></p>
-        <a href='watch-0/'{% if is_dark %} class="dark-href"{% endif %}>Смотреть онлайн</a>
-      {% endif %}
-      <br>
-      <a href='{{ backlink }}'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">Вернуться назад</button></a>
+{% block title %}Скачивание{% endblock %}
+
+{% block head %}
+<style>
+    .download-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px;
+        margin-top: 30px;
+    }
+    .download-table th {
+        padding: 15px;
+        text-align: left;
+        color: var(--text-muted);
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    .download-table tr {
+        transition: var(--transition-smooth);
+    }
+    .download-table td {
+        padding: 15px;
+        background: var(--surface-glass);
+        backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--surface-glass-border);
+        border-style: solid none;
+    }
+    .download-table td:first-child {
+        border-left: 1px solid var(--surface-glass-border);
+        border-radius: 12px 0 0 12px;
+        font-weight: 700;
+        color: var(--primary-color);
+        text-align: center;
+        width: 60px;
+    }
+    .download-table td:last-child {
+        border-right: 1px solid var(--surface-glass-border);
+        border-radius: 0 12px 12px 0;
+    }
+    .quality-link {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 6px;
+        border: 1px solid var(--surface-glass-border);
+        margin: 0 5px;
+        font-size: 0.85rem;
+    }
+    .quality-link:hover {
+        border-color: var(--primary-color);
+        background: var(--primary-glow);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="margin-top: 40px;" class="fade-in">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+        <h1>Скачивание <span style="color: var(--text-muted); font-size: 1.5rem;">и просмотр</span></h1>
+        <a href="{{ backlink }}"><button class="btn-modern btn-secondary">← Назад</button></a>
     </div>
-    <!-- Скрипты Bootstrap 5 -->
-    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-  </body>
-</html>
+    
+    <div class="glass-card" style="padding: 20px; margin-bottom: 30px;">
+        <p style="margin: 0; color: var(--text-muted);">
+            Выберите серию и удобный способ загрузки. 
+            <b>Быстрая загрузка</b> оптимизирована для скорости, <b>Стандартная</b> — прямая ссылка с сервера.
+        </p>
+    </div>
+
+    {% if series != 0 %}
+    <table class="download-table">
+        <thead>
+            <tr>
+                <th>№</th>
+                <th>Быстрая (mp4)</th>
+                <th>Стандартная</th>
+                <th>Действие</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in range(1, series + 1) %}
+            <tr>
+                <td>{{ i }}</td>
+                <td>
+                    <a href="fast-720-{{ i }}/" class="quality-link">720p</a>
+                    <a href="fast-480-{{ i }}/" class="quality-link">480p</a>
+                    <a href="fast-360-{{ i }}/" class="quality-link">360p</a>
+                </td>
+                <td>
+                    <a href="old-720-{{ i }}/" class="quality-link">720p</a>
+                    <a href="old-480-{{ i }}/" class="quality-link">480p</a>
+                    <a href="old-360-{{ i }}/" class="quality-link">360p</a>
+                </td>
+                <td>
+                    <a href="watch-{{ i }}/" class="btn-modern" style="padding: 6px 15px; font-size: 0.85rem;">Смотреть онлайн</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="glass-card" style="padding: 40px; text-align: center;">
+        <h2 style="margin-bottom: 30px;">Фильм / Спешл</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+            <div class="glass-card" style="padding: 20px;">
+                <p style="margin-bottom: 15px; font-weight: 600;">Быстрая загрузка</p>
+                <a href="fast-720-0/" class="quality-link">720p</a>
+                <a href="fast-480-0/" class="quality-link">480p</a>
+                <a href="fast-360-0/" class="quality-link">360p</a>
+            </div>
+            <div class="glass-card" style="padding: 20px;">
+                <p style="margin-bottom: 15px; font-weight: 600;">Стандартная</p>
+                <a href="old-720-0/" class="quality-link">720p</a>
+                <a href="old-480-0/" class="quality-link">480p</a>
+                <a href="old-360-0/" class="quality-link">360p</a>
+            </div>
+            <div class="glass-card" style="padding: 20px; display: flex; align-items: center; justify-content: center;">
+                <a href="watch-0/" class="btn-modern" style="width: 100%;">Смотреть онлайн</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
