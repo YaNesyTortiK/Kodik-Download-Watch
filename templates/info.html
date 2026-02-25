@@ -127,7 +127,7 @@
             <span class="label">Оценка:</span> <span style="color: var(--accent-color); font-weight: 700;">{{ score }}</span>
             <span class="label">Рейтинг:</span> <span>{{ rating }}</span>
             {% if is_shiki %}
-            <span class="label">Источник:</span> <a href="https://shikimori.one/animes/{{ id }}" target="_blank">Shikimori →</a>
+            <span class="label">Источник:</span> <a href="https://{{ shiki_mirror }}/animes/{{ id }}" target="_blank">Shikimori →</a>
             {% endif %}
         </div>
         

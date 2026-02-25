@@ -131,7 +131,14 @@ def download_shiki_choose_translation(serv, id):
                 description = data['description']
             except:
                 name = 'Неизвестно'
-                pic = config.IMAGE_AGE_RESTRICTED
+                pic = config.IMAGE_NOT_FOUND
+                score = 'Неизвестно'
+                dtype = 'Неизвестно'
+                date = 'Неизвестно'
+                status = 'Неизвестно'
+                rating = 'Неизвестно'
+                year = 'Неизвестно'
+                description = 'Неизвестно'
                 score = 'Неизвестно'
                 data = False
             finally:
@@ -159,7 +166,8 @@ def download_shiki_choose_translation(serv, id):
             series_count=serial_data["series_count"], id=id,
             dtype=dtype, date=date, status=status, rating=rating, related=related,
             description=description, is_shiki=True, cache_wasnt_used=cache_wasnt_used, serv=serv,
-            is_dark=session['is_dark'] if "is_dark" in session.keys() else False)
+            is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile,
+            shiki_mirror=config.SHIKIMORI_MIRROR if config.SHIKIMORI_MIRROR else "shikimori.one")
     elif serv == "kp":
         try:
             # Получаем данные о наличии переводов от кодика

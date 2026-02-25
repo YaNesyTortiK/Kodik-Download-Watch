@@ -30,7 +30,7 @@ else:
     kodik_parser = KodikParser(token=config.KODIK_TOKEN, use_lxml=config.USE_LXML, validate_token=True)
     USE_KODIK_SEARCH = True
 
-shiki_parser = ShikimoriParser(use_lxml=config.USE_LXML)
+shiki_parser = ShikimoriParser(use_lxml=config.USE_LXML, mirror=config.SHIKIMORI_MIRROR)
 
 
 def get_seria_link(shikimori_id: str, seria_num: int, translation_id: str):
@@ -227,7 +227,7 @@ def get_shiki_data(id: str, retries: int = 3):
             dyear = 1970
             description = 'Неизвестно'
     except errors.TooManyRequests:
-        # Сервер не допукает слишком частое обращение
+        # Сервер не допускает слишком частое обращение
         sleep(0.5)
         return get_shiki_data(id, retries=retries-1)
     except errors.NoResults:
@@ -268,14 +268,14 @@ def get_related(id: str, id_type: str, sequel_first: bool = False) -> list:
     for x in data:
         if x['date'] is None:
             x['date'] = 'Неизвестно'
-        if x['type'] in ['Манга', 'Ранобэ']:
+        if x['type'] in ['Манга', 'Ранобэ', 'Клип']:
             x['internal_link'] = x['url']
         else:
             sid = shiki_parser.id_by_link(x['url'])
             x['internal_link'] = f'/download/sh/{sid}/'
         res.append(x)
     if sequel_first:
-        return sorted(res, key=lambda x: 0 if x["relation"] == 'Продолжение' else 1)
+        return sorted(res, key=lambda x: 0 if x["relation"] == 'Продолжение' else (1 if x["relation"] == 'Предыстория' else 2))
     else:
         return res
 
