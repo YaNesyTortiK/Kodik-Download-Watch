@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="resources/favicon.ico" alt="Logo" width="80" height="80">
+  <img src="resources/A.ico" alt="Logo" width="80" height="80">
 
   <h1 align="center">Kodik-Download-Watch</h1>
 
