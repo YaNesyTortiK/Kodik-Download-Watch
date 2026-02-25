@@ -1,7 +1,17 @@
-KODIK_TOKEN = "b714ce2b8d2ce9bcf77556558370c0ab"
-SHIKIMORI_MIRROR = None # Домен зеркало для shikimori. None = параметр из парсера по умолчанию
-APP_SECRET_KEY = "some_super_secret_key"
-DEBUG = True # Debug от Flask
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+# Адрес для доступа
+HOST = os.getenv("HOST") # Такой адрес позволяет получить доступ как через 127.0.0.1, так и через локальный адрес компьютера (позволяет получить доступ к серверу с других устройств в сети)
+PORT = os.getenv("PORT")
+KODIK_TOKEN = os.getenv("KODIK_TOKEN")
+APP_SECRET_KEY = os.getenv("APP_SECRET_KEY")
+DEBUG = os.getenv("DEBUG") # Debug от Flask
+SHIKIMORI_MIRROR = os.getenv("SHIKIMORI_MIRROR") # Домен зеркало для shikimori. None = параметр из парсера по умолчанию
+USE_KODIK_SEARCH = os.getenv("USE_KODIK_SEARCH")
+
+
 SAVE_DATA = True # Для сохранения результатов парсинга (картинки, названия, ссылки на видео)
 USE_SAVED_DATA = True # Для использования уже сохранённых результатов
 SAVED_DATA_FILE = "cache.json" # Файл с сохранёнными данными (если SAVE_DATA == False и USE_SAVED_DATA == False, файл не обязателен)
@@ -22,11 +32,8 @@ IMAGE_AGE_RESTRICTED = "/resources/age-restricted.png" # Картинка для
 # Путь к иконке
 FAVICON_PATH = "resources/A.ico"
 
-# Адрес для доступа
-HOST = '0.0.0.0' # Такой адрес позволяет получить доступ как через 127.0.0.1, так и через локальный адрес компьютера (позволяет получить доступ к серверу с других устройств в сети)
 
-# Порт для доступа
-PORT = 5555
+
 
 # Параметры парсинга
 USE_LXML = True # В некоторых случаях lxml может не работать, можно перейти на стандартный парсер от bs4 прописав False

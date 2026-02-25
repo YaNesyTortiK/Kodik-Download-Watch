@@ -7,3 +7,4 @@ cache.json
 test.*
 tmp/*
 __pycache__/
+.env

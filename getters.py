@@ -24,11 +24,13 @@ if config.KODIK_TOKEN is None:
     else:
         # Если ошибки по токену нет, значит используем поиск по кодику
         USE_KODIK_SEARCH = True
-else:
+elif config.USE_KODIK_SEARCH:
     # Токен указан в конфиге, поэтому принимается за полностью рабочий
     # и проходит полную валидацию
     kodik_parser = KodikParser(token=config.KODIK_TOKEN, use_lxml=config.USE_LXML, validate_token=True)
     USE_KODIK_SEARCH = True
+else:
+    USE_KODIK_SEARCH = False
 
 shiki_parser = ShikimoriParser(use_lxml=config.USE_LXML, mirror=config.SHIKIMORI_MIRROR)
 
