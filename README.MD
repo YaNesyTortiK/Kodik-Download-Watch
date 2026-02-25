@@ -53,16 +53,18 @@
    cd anime-site
    ```
 
-2. **Создайте виртуальное окружение:**
+2. **Создайте виртуальное окружение и файл для кэша:**
    * **Windows:**
      ```bash
      python -m venv venv
      venv\Scripts\activate
+     echo {} > cache.json
      ```
    * **Linux:**
      ```bash
      python3 -m venv venv
      source venv/bin/activate
+     echo {} > cache.json
      ```
 
 3. **Установите зависимости:**
