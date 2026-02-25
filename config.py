@@ -1,4 +1,4 @@
-KODIK_TOKEN = ""
+KODIK_TOKEN = "b714ce2b8d2ce9bcf77556558370c0ab"
 APP_SECRET_KEY = "some_super_secret_key"
 DEBUG = True # Debug от Flask
 SAVE_DATA = True # Для сохранения результатов парсинга (картинки, названия, ссылки на видео)

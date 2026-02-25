@@ -1,6 +1,6 @@
 /venv/
 */__pycache__/
-cache.json
+../cache.json
 .vscode
 .idea
 .venv

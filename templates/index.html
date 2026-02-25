@@ -14,20 +14,23 @@
                 <input class="search-input-modern" id="search-input" name="kdk" placeholder="Напр: Магическая битва" required autocomplete="off">
                 <button type="submit" class="btn-modern" style="width: 100%; margin-top: 20px;">Поиск по названию</button>
             </div>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-top: 1px solid var(--surface-glass-border); padding-top: 30px;">
+        </form>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-top: 1px solid var(--surface-glass-border); padding-top: 30px;">
+            <form method="POST" novalidate id="search-form">
                 <div style="text-align: left;">
                     <label style="display: block; margin-bottom: 10px; font-size: 0.9rem; color: var(--text-muted);">Shikimori ID</label>
                     <input class="search-input-modern" name="shikimori_id" placeholder="ID" autocomplete="off">
                     <button type="submit" class="btn-modern btn-secondary" style="width: 100%; margin-top: 10px; font-size: 0.9rem;">Найти</button>
                 </div>
+            </form>
+            <form method="POST" novalidate id="search-form">
                 <div style="text-align: left;">
                     <label style="display: block; margin-bottom: 10px; font-size: 0.9rem; color: var(--text-muted);">Кинопоиск ID</label>
                     <input class="search-input-modern" name="kinopoisk_id" placeholder="ID" autocomplete="off">
                     <button type="submit" class="btn-modern btn-secondary" style="width: 100%; margin-top: 10px; font-size: 0.9rem;">Найти</button>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </section>
 
@@ -45,13 +48,6 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/display_recently.js') }}"></script>
-<script>
-    // Добавим немного интерактива: если введено число в основной поиск, переключать подсказку или тип
-    const mainSearch = document.getElementById('search-input');
-    mainSearch.addEventListener('input', (e) => {
-        // Логика автоопределения ID (опционально)
-    });
-</script>
 <style>
     .recently_watch .card {
         display: flex;
