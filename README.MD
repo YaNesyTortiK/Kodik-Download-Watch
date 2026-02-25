@@ -159,7 +159,7 @@
 ## Thanks
 
 - [YaNesyTortiK](https://github.com/YaNesyTortiK/) - [Kodik-Download-Watch](https://github.com/YaNesyTortiK/Kodik-Download-Watch)
-- [bloc97](https://github.com/bloc97/) - [Anime4k](https://github.com/bloc97/Anime4K)
+- [bloc97](https://github.com/bloc97/) - [Anime4k](https://github.com/bloc97/Anime4K)<br>
 also
 - [D4mnedLure](https://github.com/D4mnedLure/) - for fixing bugs and huge UI improvements
 
