@@ -21,7 +21,7 @@ socket.on('connect', function() {
 });
 
 socket.on('message', (event) => {
-    if (event.sender === socket.id) return;
+    if (event.inititatorId === socket.id) return;
     // console.log(`[message] Данные получены с сервера: ${event.data.status}, ${event}`);
     if (event.data.status == 'loading') {
         video.currentTime = event.data.time;
