@@ -9,11 +9,11 @@ let rid = hrf.slice(hrf.slice(0, -5).lastIndexOf('/')+1, -1);
 let qrCode;
 
 video.onpause = function() {
-    socket.emit("broadcast", {data: {'status': 'paused', 'time': video.currentTime}, rid: rid})
+    socket.emit("broadcast", {data: {'status': 'paused', 'time': video.currentTime}, rid: rid, inititatorId: socket.id})
 }
 
 video.onplay = function() {
-    socket.emit("broadcast", {data: {'status': 'playing', 'time': video.currentTime}, rid: rid})
+    socket.emit("broadcast", {data: {'status': 'playing', 'time': video.currentTime}, rid: rid, inititatorId: socket.id})
 }
 
 socket.on('connect', function() {
@@ -21,6 +21,7 @@ socket.on('connect', function() {
 });
 
 socket.on('message', (event) => {
+    if (event.inititatorId === socket.id) return;
     // console.log(`[message] Данные получены с сервера: ${event.data.status}, ${event}`);
     if (event.data.status == 'loading') {
         video.currentTime = event.data.time;
@@ -28,7 +29,7 @@ socket.on('message', (event) => {
     }
     if (event.data.status == 'playing') {
         video.currentTime = event.data.time;
-        video.play();
+        video.play().catch();
     }
     if (event.data.status == 'paused') {
         video.currentTime = event.data.time;
