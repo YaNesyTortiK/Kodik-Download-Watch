@@ -94,10 +94,18 @@
           <font size="4">{{ translation.type }}</font>
         </td>
         <td width=300px>
-          <font size="4"><a href="{{ series_count }}-{{ translation.id }}/" {% if is_dark %} class="dark-href"{% endif %}>{{ translation.name }}</a></font>
+          {% if translation.series_range[1] != 0 %}
+            <font size="4"><a href="{{translation.series_range[0]}}:{{ translation.series_range[1] }}-{{ translation.id }}/" {% if is_dark %} class="dark-href"{% endif %}>{{ translation.name }}</a></font>
+          {% else %}
+            <font size="4"><a href="1:{{ series_count }}-{{ translation.id }}/" {% if is_dark %} class="dark-href"{% endif %}>{{ translation.name }}</a></font>
+          {% endif %}
         </td>
         <td>
-          <font size="4"><a href="{{ series_count }}-{{ translation.id }}/watch-{% if series_count == 0 %}0{% else %}1{% endif %}/" {% if is_dark %} class="dark-href"{% endif %}>Смотреть онлайн</a></font>
+          {% if translation.series_range[1] != 0 %}
+            <font size="4"><a href="{{translation.series_range[0]}}:{{ translation.series_range[1] }}-{{ translation.id }}/watch-{% if series_count == 0 %}0{% else %}{{ translation.series_range[0] }}{% endif %}/" {% if is_dark %} class="dark-href"{% endif %}>Смотреть онлайн</a></font>
+          {% else %}
+            <font size="4"><a href="1:{{ series_count }}-{{ translation.id }}/watch-{% if series_count == 0 %}0{% else %}1{% endif %}/" {% if is_dark %} class="dark-href"{% endif %}>Смотреть онлайн</a></font>
+          {% endif %}
         </td>
       </tr>
       {% endfor %}

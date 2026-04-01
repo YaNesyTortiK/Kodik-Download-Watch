@@ -18,7 +18,7 @@
       </tr>
     </table>
     <div class="container mt-5">
-      <h1>Серия {{ seria }} / {{ series }}</h1>
+      <h1>Серия {{ seria }} / {{ series[1] }}</h1>
       <video controls="controls" width="100%" autoplay>
         <source src="{{ straight_url }}" type='video/mp4'>
       </video>
@@ -26,10 +26,10 @@
         <tr>
           <td>
             <table>
-              {% if seria > 1 %}
+              {% if seria > series[0] %}
                 <td><a id="previous_seria_a" href='/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria-1 }}/{{ quality }}/'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">Предыдущая серия</button></a></td>
               {% endif %}
-              {% if seria < series %}
+              {% if seria < series[1] %}
                 <td><a id="next_seria_a" href='/watch/{{ serv }}/{{ id }}/{{ data }}/{{ seria+1 }}/{{ quality }}/'><button class="btn {% if is_dark %}dark-{% endif %}btn-primary">Следующая серия</button></a></td>
               {% endif %}
             </table>
@@ -54,10 +54,10 @@
           </td>
         </tr>
       </table>
-      {% if seria > 0 %}
+      {% if series[1] != 0 %}
       <form method="POST" novalidate>
         <div class="mb-3">
-        <label for="choose_seria_num" class="form-label">Введите номер серии (1-{{ data[:data.find("-")] }}):</label>
+        <label for="choose_seria_num" class="form-label">Введите номер серии ({{ data[:data.find("-")] }}):</label>
         <table style="position:relative; top:-15px">
           <tr>
             <td><input id="choose_seria_num" name="seria" required autocomplete=off cols="10" maxlength='80' class="{% if is_dark %}dark-{% endif %}form-control" style="width: 100px;"></td>

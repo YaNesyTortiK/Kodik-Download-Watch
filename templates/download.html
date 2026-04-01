@@ -28,27 +28,25 @@
             </tr>
           </thead>
           <tbody>
-            {% for url in range(series) %}
+            {% for url in range(series[0], series[1]+1) %}
               <tr>
                 <td align="center">
-                  <font size=4>{{ loop.index }}</font>
+                  <font size=4>{{ url }}</font>
                 </td>
                 <td align="center">
                   <font size=4>
-                    <a href="fast-720-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href="fast-480-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href="fast-360-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>360</a>
+                    <a href="fast-720-{{ url }}/"{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href="fast-480-{{ url }}/"{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href="fast-360-{{ url }}/"{% if is_dark %} class="dark-href"{% endif %}>360</a>
                   </font>
                 </td>
                 <td align="center">
                   <font size=4>
-                    <a href="old-720-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href="old-480-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href="old-360-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>360</a>
+                    <a href="old-720-{{ url }}/"{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href="old-480-{{ url }}/"{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href="old-360-{{ url }}/"{% if is_dark %} class="dark-href"{% endif %}>360</a>
                   </font>
                 </td>
                 <td align="center">
-                  <font size=4><a href='watch-{{ loop.index }}/'{% if is_dark %} class="dark-href"{% endif %}>Смотреть онлайн</a></font>
+                  <font size=4><a href='watch-{{ url }}/'{% if is_dark %} class="dark-href"{% endif %}>Смотреть онлайн</a></font>
                 </td>
               </tr>
-            <!--<p>{{ loop.index }} серия: <a href="720-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>720</a> | <a href="480-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>480</a> | <a href="360-{{ loop.index }}/"{% if is_dark %} class="dark-href"{% endif %}>360</a> | <a href='watch-{{ loop.index }}/'{% if is_dark %} class="dark-href"{% endif %}>Смотреть онлайн</a></p>
-            -->
             {% endfor %}
           </tbody>
         </table>

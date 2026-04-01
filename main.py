@@ -167,17 +167,20 @@ def download_shiki_choose_translation(serv, id):
 
 @app.route('/download/<string:serv>/<string:id>/<string:data>/')
 def download_choose_seria(serv, id, data):
+    if data == "None":
+        return
     data = data.split('-')
-    series = int(data[0])
+    series = [int(x) for x in data[0].split(":")]
     return render_template('download.html', series=series, backlink=f"/download/{serv}/{id}/",
                            is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile)
 
 @app.route('/download/<string:serv>/<string:id>/<string:data>/<string:download_type>-<string:quality>-<int:seria>/')
 def redirect_to_download(serv, id, data, download_type, quality, seria):
     data = data.split('-')
+    series = [int(x) for x in data[0].split(":")]
     translation_id = str(data[1])
     if download_type == 'fast':
-        return redirect(f'/fast_download/{serv}-{id}-{seria}-{translation_id}-{quality}-{data[0]}/')
+        return redirect(f'/fast_download/{serv}-{id}-{seria}-{translation_id}-{quality}-{series[1]}/')
     try:
         if serv == "sh":
             if ch_use and ch.is_seria("sh"+id, translation_id, seria):
@@ -219,7 +222,8 @@ def redirect_to_download(serv, id, data, download_type, quality, seria):
 
 @app.route('/download/<string:serv>/<string:id>/<string:data>/watch-<int:num>/')
 def redirect_to_player(serv, id, data, num):
-    if data[0] == "0":
+    series = [int(x) for x in data.split("-")[0].split(':')]
+    if series[0] == 0 and series[1] == 0:
         return redirect(f'/watch/{serv}/{id}/{data}/0/')
     else:
         return redirect(f'/watch/{serv}/{id}/{data}/{num}/')
@@ -240,7 +244,7 @@ def redirect_to_old_type_quality(serv, id, data, seria, quality, timing = 0):
 def watch(serv, id, data, seria, quality = "720", timing = 0):
     try:
         data = data.split('-')
-        series = int(data[0])
+        series = [int(x) for x in data[0].split(":")]
         translation_id = str(data[1])
         title = None
         if serv == "sh":
