@@ -12,27 +12,27 @@ USE_KODIK_SEARCH = False
 if config.KODIK_TOKEN is None:
     try:
         # Проверяем, может ли токен получить доступ к апи полностью
-        kodik_parser = KodikParser(token=KodikParser.get_token(), use_lxml=config.USE_LXML, validate_token=True)
+        kodik_parser = KodikParser(token=KodikParser.get_token(), use_lxml=config.USE_LXML, validate_token=True, proxy=config.KODIK_PROXY)
     except errors.TokenError:
         print("Токен неверен для нескольких функций. Поиск будет происходить по шикимори.")
         # Если не может, то без валидации (поиск будет через шики)
-        kodik_parser = KodikParser(token=KodikParser.get_token(), use_lxml=config.USE_LXML, validate_token=False)
+        kodik_parser = KodikParser(token=KodikParser.get_token(), use_lxml=config.USE_LXML, validate_token=False, proxy=config.KODIK_PROXY)
     else:
         # Если ошибки по токену нет, значит используем поиск по кодику
         USE_KODIK_SEARCH = True
 else:
     # Токен указан в конфиге, поэтому принимается за полностью рабочий
     # и проходит полную валидацию
-    kodik_parser = KodikParser(token=config.KODIK_TOKEN, use_lxml=config.USE_LXML, validate_token=True)
+    kodik_parser = KodikParser(token=config.KODIK_TOKEN, use_lxml=config.USE_LXML, validate_token=True, proxy=config.KODIK_PROXY)
     USE_KODIK_SEARCH = True
 
-shiki_parser = ShikimoriParser(use_lxml=config.USE_LXML, mirror=config.SHIKIMORI_MIRROR)
+shiki_parser = ShikimoriParser(use_lxml=config.USE_LXML, mirror=config.SHIKIMORI_MIRROR, proxy=config.SHIKI_PROXY)
 
 def test_shiki():
     try:
         shiki_parser.anime_info(shiki_parser.link_by_id('z20'))
     except (requests.exceptions.HTTPError, requests.exceptions.SSLError, requests.exceptions.Timeout, requests.exceptions.ReadTimeout) as ex:
-        raise Warning(f"Произошла ошибка соединения при проверке парсера Шикимори.\nПроверьте доступность сайта/зеркала.\nТекущий используемый домен: {shiki_parser._dmn}\n"\
+        raise Warning(f"Произошла ошибка соединения при проверке парсера Шикимори.\nПроверьте доступность сайта/зеркала.\nТекущий используемый домен: {shiki_parser._dmn}\nТекущий используемый прокси: {config.SHIKI_PROXY}\n"\
               f"Текст ошибки: {ex}")
     except Exception as ex:
         raise Warning(f"Произошла непредвиденная ошибка при проверка парсера Шикимори.\nТекст ошибки: \"{ex}\"")
