@@ -10,13 +10,14 @@ if config.USE_LXML:
 USE_KODIK_SEARCH = False
 
 if config.KODIK_TOKEN is None:
+    tkn = KodikParser.get_token()
     try:
         # Проверяем, может ли токен получить доступ к апи полностью
-        kodik_parser = KodikParser(token=KodikParser.get_token(), use_lxml=config.USE_LXML, validate_token=True, proxy=config.KODIK_PROXY)
+        kodik_parser = KodikParser(token=tkn, use_lxml=config.USE_LXML, validate_token=True, proxy=config.KODIK_PROXY)
     except errors.TokenError:
         print("Токен неверен для нескольких функций. Поиск будет происходить по шикимори.")
         # Если не может, то без валидации (поиск будет через шики)
-        kodik_parser = KodikParser(token=KodikParser.get_token(), use_lxml=config.USE_LXML, validate_token=False, proxy=config.KODIK_PROXY)
+        kodik_parser = KodikParser(token=tkn, use_lxml=config.USE_LXML, validate_token=False, proxy=config.KODIK_PROXY)
     else:
         # Если ошибки по токену нет, значит используем поиск по кодику
         USE_KODIK_SEARCH = True
@@ -44,7 +45,7 @@ def get_serial_info(id: str, id_type: str, token: str) -> dict:
     return kodik_parser.get_info(id, id_type)
 
 def get_download_link(id: str, id_type: str, seria_num: int, translation_id: str, token: str):
-    return kodik_parser.get_link(id, id_type, seria_num, translation_id)[0]
+    return kodik_parser.get_link(id, id_type, seria_num, translation_id)
 
 def get_search_data(search_query: str, token: str | None, ch: Cache = None):
     if USE_KODIK_SEARCH:

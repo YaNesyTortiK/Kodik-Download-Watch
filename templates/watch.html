@@ -97,6 +97,9 @@
       <p>Если у вас не найден плеер или не получается скачать, попробуйте сменить качество.</p>
       <button class="btn {% if is_dark %}dark-{% endif %}btn-primary mb-3" style="position: relative;" onclick="document.location.replace(`/download/${page_data['serv']}/${page_data['id']}/`)">Вернуться на страницу тайтла</button>
     </div>
+    <button id="seg_skip_btn" style="display: none; position: absolute; background: rgb(0,0,0,0.5); border-color: rgb(0,0,0,0.3); color: rgb(255,255,255); height: 50px; width: 150px;"> <!-- Кнопка пропуска сегмента -->
+      Пропустить >>
+    </button>
     <!-- Скрипты генерации qr кода -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Собираем данные в json подобное -->
@@ -109,7 +112,8 @@
         "serv": "{{serv}}",
         "id": "{{id}}",
         "data": "{{data}}",
-        "seria": "{{seria}}"
+        "seria": "{{seria}}",
+        "skip_segments": {{ skip_segments }}
       }
     </div>
     <!-- Скрипты Bootstrap 5 -->
@@ -121,6 +125,7 @@
       const timing_link_div = document.getElementById('timing_link_div')
       const create_qr_btn = document.getElementById('create_qr_btn')
       let qrCode;
+      let isFullScreen = false;
 
       // Авто-фокус на видео плеере
       video.focus()
@@ -167,6 +172,14 @@
           if (page_data['cur_ser'] > 1) {
             const href_next = document.getElementById('previous_seria_a').href
             document.location.replace(href_next)
+          }
+        } else if (event.key == 'g' || event.key == 'п') {
+          if (page_data['skip_segments'].length > 0) {
+            for (let i = 0; i < page_data['skip_segments'].length; i++) {
+              if (video.currentTime >= page_data['skip_segments'][i][0] & video.currentTime <= page_data['skip_segments'][i][1]) {
+                video.currentTime = page_data['skip_segments'][i][1]
+              }
+            }
           }
         }
       });
@@ -219,6 +232,27 @@
           document.getElementById('link_container').value = loc
           document.getElementById("qr_code_container").style = "background-color: white; height: 300px; width: 300px; display: flex; align-items: center;justify-content: center;"
       });
+
+      if (page_data['skip_segments'].length > 0) {
+        seg_skip_btn = document.getElementById('seg_skip_btn')
+        video.addEventListener('timeupdate', () => {
+          disp = false
+          for (let i = 0; i < page_data['skip_segments'].length; i++) {
+            if (video.currentTime >= page_data['skip_segments'][i][0] & video.currentTime <= Math.min(page_data['skip_segments'][i][1], page_data['skip_segments'][i][0]+15)) {
+              seg_skip_btn.style.display = 'block'
+              seg_skip_btn.style.top = video.offsetTop + video.offsetHeight - 95 + "px"
+              seg_skip_btn.style.left = video.offsetLeft + video.offsetWidth - 180 + "px"
+              disp = true
+              seg_skip_btn.addEventListener('click', () => {
+                video.currentTime = page_data['skip_segments'][i][1]
+              })
+              }
+          }
+          if (!disp) {
+            seg_skip_btn.style.display = 'none'
+          }
+        })
+      }
 
     </script>
   </body>

@@ -80,13 +80,13 @@ class Cache:
         else:
             raise KeyError("Id not found")
     
-    def get_seria(self, id: str, translation_id: str, seria_num: int) -> str:
+    def get_seria(self, id: str, translation_id: str, seria_num: int) -> tuple[str, list[int, int]]:
         if seria_num in self.data[id]['urls'][translation_id].keys():
             return self.data[id]['urls'][translation_id][seria_num]
         else:
             raise KeyError("Id not found")
 
-    def add_seria(self, id: str, translation_id: str, seria_num: int, url: str):
+    def add_seria(self, id: str, translation_id: str, seria_num: int, url: str, skip_segments: list = []):
         """
         Добавляет ссылку на серию в заданном качестве
         """
@@ -95,7 +95,7 @@ class Cache:
         else:
             if not self.is_translation(id, translation_id):
                 self.add_translation(id, translation_id)
-            self.data[id]['urls'][translation_id][seria_num] = url
+            self.data[id]['urls'][translation_id][seria_num] = (url, None, skip_segments)
         
         if time() - self.__t > self.period:
             self.__t = time()

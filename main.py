@@ -66,6 +66,8 @@ def search_page(db, query):
             # Попытка получить данные с кодика
             s_data = get_search_data(query, token, ch if ch_save or ch_use else None)
             return render_template('search.html', items=s_data[0], others=s_data[1], is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile, is_kodik_search=USE_KODIK_SEARCH)
+        except requests.exceptions.SSLError:
+            return abort(500, 'Произошла ошибка подключения при получении данных с шикимори. Проверьте доступность сайта и правильность указанного зеркала и прокси!')
         except:
             return render_template('search.html', is_dark=session['is_dark'] if "is_dark" in session.keys() else False, is_mobile=g.is_mobile, is_kodik_search=USE_KODIK_SEARCH)
     else:
@@ -185,7 +187,7 @@ def redirect_to_download(serv, id, data, download_type, quality, seria):
         if serv == "sh":
             if ch_use and ch.is_seria("sh"+id, translation_id, seria):
                 # Получаем данные из кеша (если есть и используется)
-                url = ch.get_seria("sh"+id, translation_id, seria)
+                url = ch.get_seria("sh"+id, translation_id, seria)[0]
             else:
                 # Получаем данные с сервера
                 url = get_download_link(id, "shikimori", seria, translation_id, token)
@@ -193,7 +195,7 @@ def redirect_to_download(serv, id, data, download_type, quality, seria):
                     # Записываем данные в кеш
                     try:
                         # Попытка записать данные к уже имеющимся данным
-                        ch.add_seria("sh"+id, translation_id, seria, url)
+                        ch.add_seria("sh"+id, translation_id, seria, url[0], url[2])
                     except KeyError:
                         pass
         elif serv == "kp":
@@ -207,11 +209,12 @@ def redirect_to_download(serv, id, data, download_type, quality, seria):
                     # Записываем данные в кеш
                     try:
                         # Попытка записать данные к уже имеющимся данным
-                        ch.add_seria("kp"+id, translation_id, seria, url)
+                        ch.add_seria("kp"+id, translation_id, seria, url[0], url[2])
                     except KeyError:
                         pass
         else:
             return abort(400)
+        url = url[0] # Берем только ссылку (тут хранятся еще и качество и сегменты для пропуска)
         translation = translations[translation_id] if translation_id in translations else "Неизвестно"
         if seria == 0:
             return redirect(f"https:{url}{quality}.mp4:Перевод-{translation}:.mp4")
@@ -263,7 +266,7 @@ def watch(serv, id, data, seria, quality = "720", timing = 0):
                 if ch_save and not ch.is_seria("sh"+id, translation_id, seria):
                     # Записываем данные в кеш
                     try:
-                        ch.add_seria("sh"+id, translation_id, seria, url)
+                        ch.add_seria("sh"+id, translation_id, seria, url[0], url[2])
                     except KeyError:
                         pass
         elif serv == "kp":
@@ -282,18 +285,20 @@ def watch(serv, id, data, seria, quality = "720", timing = 0):
                 if ch_save and not ch.is_seria("kp"+id, translation_id, seria):
                     # Записываем данные в кеш
                     try:
-                        ch.add_seria("kp"+id, translation_id, seria, url)
+                        ch.add_seria("kp"+id, translation_id, seria, url[0], url[2])
                     except KeyError:
                         pass
         else:
             return abort(400)
+        skip_segments = url[2]
+        url = url[0] # Берем только ссылку (тут хранятся еще и качество и сегменты для пропуска)
         straight_url = f"https:{url}{quality}.mp4" # Прямая ссылка
         url = f"/download/{serv}/{id}/{'-'.join(data)}/old-{quality}-{seria}" # Ссылка на скачивание через этот сервер
         return render_template('watch.html',
             url=url, seria=seria, series=series, id=id, id_type=id_type, data="-".join(data), quality=quality, serv=serv, straight_url=straight_url,
             allow_watch_together=config.ALLOW_WATCH_TOGETHER,
             is_dark=session['is_dark'] if "is_dark" in session.keys() else False,
-            timing=timing, title=title, is_mobile=g.is_mobile)
+            timing=timing, title=title, skip_segments=skip_segments, is_mobile=g.is_mobile)
     except:
         return abort(404)
 
@@ -325,7 +330,7 @@ def create_room():
     data = {
         'serv': data[-6],
         'id': data[-5],
-        'series_count': int(temp[0]),
+        'series_count': int(temp[0].split(':')[1]),
         'translation_id': temp[1],
         'seria': int(data[-3]),
         'quality': int(data[-2]),
@@ -359,7 +364,7 @@ def room(rid):
                 if ch_save and not ch.is_seria("sh"+id, translation_id, seria):
                     # Записываем данные в кеш
                     try:
-                        ch.add_seria("sh"+id, translation_id, seria, url)
+                        ch.add_seria("sh"+id, translation_id, seria, url[0], url[2])
                     except KeyError:
                         pass
         elif rd['serv'] == "kp":
@@ -373,11 +378,12 @@ def room(rid):
                 if ch_save and not ch.is_seria("kp"+id, translation_id, seria):
                     # Записываем данные в кеш
                     try:
-                        ch.add_seria("kp"+id, translation_id, seria, url)
+                        ch.add_seria("kp"+id, translation_id, seria, url[0], url[2])
                     except KeyError:
                         pass
         else:
             return abort(400)
+        url = url[0] # Берем только ссылку (тут хранятся еще и качество и сегменты для пропуска)
         straight_url = f"https:{url}{quality}.mp4" # Прямая ссылка
         url = f"/download/{rd['serv']}/{id}/{series}-{translation_id}/{quality}-{seria}" # Ссылка на скачивание через этот сервер
         return render_template('room.html',

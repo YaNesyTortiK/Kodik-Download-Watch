@@ -31,7 +31,7 @@ def fast_download(id: str, id_type: str, seria_num: int, translation_id: str, qu
     
     if id_type == 'sh': id_type = 'shikimori'
     elif id_type == 'kp': id_type = 'kinopoisk'
-    link = get_download_link(id, id_type, seria_num, translation_id, token)
+    link = get_download_link(id, id_type, seria_num, translation_id, token)[0]
     manifest = get_url_data('https:'+link+quality+'.mp4:hls:manifest.m3u8')
     segments = get_segments(manifest, 'https:'+link)
     thr = len(segments)
